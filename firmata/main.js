@@ -31,7 +31,7 @@ function connect() {
         validPort.onReceive = data => {
             //let textDecoder = new TextDecoder();
             //t.io.print(textDecoder.decode(data));
-            var bufView = new Uint8Array(data);
+            var bufView = new Uint8Array(data.buffer);
             modifiedFirmata.recvNewData(bufView);
         }
         validPort.onReceiveError = error => {
