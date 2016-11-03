@@ -316,6 +316,8 @@
       constructor() {
         this.device = null;
         this.onDisconnected = this.onDisconnected.bind(this);
+        this.digitalRegister = 0;
+        this.modeRegister = 0;  
       }
 
       groveIOUUID(UUID16bitString) {
@@ -370,19 +372,19 @@
       }
 
       digitalReadHex() {
-        return this.readCharacteristic('5e81').then(value => value.getUint8());
+        return this.readCharacteristic('5e81').then(value => {this.digitalRegister = value.getUint8(); return this.digitalRegister});
       }
 
       digitalWriteHex(value) {
-        return this.writeCharacteristic('5e81', new Uint8Array([value]));
+        return this.writeCharacteristic('5e81', new Uint8Array([value])).then(_ => this.digitalRegister = value);
       }
 
       pinModeReadHex() {
-        return this.readCharacteristic('5e82').then(value => value.getUint8());
+        return this.readCharacteristic('5e82').then(value => {this.modeRegister = value.getUint8(); return this.modeRegister});
       }
 
       pinModeWriteHex(value) {
-        return this.writeCharacteristic('5e82', new Uint8Array([value]));
+        return this.writeCharacteristic('5e82', new Uint8Array([value])).then(_ => this.modeRegister = value);
       }
 
       analogChannelWriteHex(value) {
@@ -404,8 +406,7 @@
       pinMode(pin, mode) {
         if (this.device && this.device.gatt.connected) {
           if (pin >= 0 && pin <= 7) {
-            return this.pinModeReadHex()
-              .then(value => this.pinModeWriteHex(this.bitOperation(value, pin, mode)));
+            return this.pinModeWriteHex(this.bitOperation(this.modeRegister, pin, mode));
           }
         }
       }
@@ -413,8 +414,7 @@
       digitalWrite(pin, mode) {
         if (this.device && this.device.gatt.connected) {
           if (pin >= 0 && pin <= 7) {
-            return this.digitalReadHex()
-              .then(value => this.digitalWriteHex(this.bitOperation(value, pin, mode)));
+            return (this.digitalWriteHex(this.bitOperation(this.digitalRegister, pin, mode)));
           }
         }
       }
@@ -492,8 +492,17 @@
         .then(_ => {
           /* Do something with simpleBLEPeripheral */
           appendHtml(document.body, 'Device' + groveIOBLE.device.name + ' is connected.');
-          //return groveIOBLE.digitalReadHex();
-        }).catch(error => {
+          return groveIOBLE.digitalReadHex();
+        }).then(_ => groveIOBLE.pinModeReadHex() )
+        .then(_ => {
+          //update UI  
+          for (var i = 0; i < totalChannels; i++) {
+            document.getElementById("dMode_" + i).checked=((groveIOBLE.modeRegister&(1<<i))!=0);
+            document.getElementById("dOut_" + i).checked=((groveIOBLE.digitalRegister&(1<<i))!=0);
+          }
+          updateFunctionCell();
+        })
+        .catch(error => {
           console.log(error)
         });
     });
