@@ -1,0 +1,123 @@
+/*UI layout*/
+
+.UILine {
+    display:table-row;
+}
+
+.UITitleCell {
+    display: table-cell;
+    font-family: Sans-serif;
+    font-size: 52px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+.UICell {
+    display: table-cell;
+    padding: 4px;
+}
+
+.UIChannelCell {
+    display: table-cell;
+    font-family: Sans-serif;
+    font-size: 52px;
+    padding: 4px;
+}
+
+.ReadButton {
+    background-color: #bdc3c7; 
+    border: 2px solid #7F8C8D;
+    color: white;
+
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 30px;
+    
+    width: 120px;
+    height: 72px;
+    position: absolute;
+}
+
+.ConnectButton {
+    background-color: #bdc3c7; 
+    border: 2px solid #7F8C8D;
+    color: white;
+
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 30px;
+    
+    width: 200px;
+    height: 72px;
+}
+
+
+/* The switch https://proto.io/freebies/onoff/ */
+.onoffswitch {
+    position: relative; width: 120px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #7F8C8D; border-radius: 100px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 68px; padding: 0; line-height: 68px;
+    font-size: 30px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner.output:before {
+    content: "H";
+    padding-left: 15px;
+    background-color: #f1c40f; color: #000000;
+}
+.onoffswitch-inner.output:after {
+    content: "L";
+    padding-right: 15px;
+    background-color: #bdc3c7; color: #FFFFFF;
+    text-align: right;
+}
+.onoffswitch-inner.analog:before {
+    content: "A";
+    padding-left: 15px;
+    background-color: #e74c3c; color: #000000;
+}
+.onoffswitch-inner.analog:after {
+    content: " ";
+    padding-right: 15px;
+    background-color: #bdc3c7; color: #FFFFFF;
+    text-align: right;
+}
+.onoffswitch-inner.digital:before {
+    content: "O";
+    padding-left: 15px;
+    background-color: #2ecc71; color: #000000;
+}
+.onoffswitch-inner.digital:after {
+    content: "I";
+    padding-right: 15px;
+    background-color: #bdc3c7; color: #FFFFFF;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 68px; margin: 0px;
+    background: #ecf0f1;
+    position: absolute; top: 0; bottom: 0;
+    right: 48px;
+    border: 2px solid #7F8C8D; border-radius: 100px;
+    transition: all 0.3s ease-in 0s; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}

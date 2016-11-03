@@ -1,0 +1,504 @@
+<html>
+
+<head>
+  <!-- Origin Trial Token, feature = Web Bluetooth, origin = https://deqingsun.github.io, expires = 2016-12-13 -->
+  <meta http-equiv="origin-trial" data-feature="Web Bluetooth" data-expires="2016-12-13" content="Am5PUVbIC+kr+9FFTSNMdYeAxBEQpvCjqwwc5Nr1kW/8lXAAE+Tk6F33a0sacPWRrEo42l+vb2xdp1KT//Zv0gIAAABZeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYkJsdWV0b290aCIsImV4cGlyeSI6MTQ4MTYzOTIyNH0=">
+  <title>webBluetooth with SimpleBLEPeripheral</title>
+  <link rel="stylesheet" type="text/css" href="webBluetoothGroveIO.css">
+</head>
+
+<body>
+
+  <button class="ConnectButton" type="button" id="buttonConnect">Connect</button>
+
+  <div class="groveControlUI">
+    <div class="UILine">
+      <div class="UITitleCell">
+        <p>CH</p>
+      </div>
+      <div class="UITitleCell">
+        <p>Digital</p>
+      </div>
+      <div class="UITitleCell">
+        <p>Analog</p>
+      </div>
+      <div class="UITitleCell">
+        <p> </p>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>0</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_0">
+          <label class="onoffswitch-label" for="dMode_0">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_0">
+          <label class="onoffswitch-label" for="aIn_0">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_0">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_0">
+          <label class="onoffswitch-label" for="dOut_0">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_0">
+        <button class="ReadButton" type="button" id="in_0">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>1</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_1">
+          <label class="onoffswitch-label" for="dMode_1">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_1">
+          <label class="onoffswitch-label" for="aIn_1">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_1">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_1">
+          <label class="onoffswitch-label" for="dOut_1">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_1">
+        <button class="ReadButton" type="button" id="in_1">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>2</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_2">
+          <label class="onoffswitch-label" for="dMode_2">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_2">
+          <label class="onoffswitch-label" for="aIn_2">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_2">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_2">
+          <label class="onoffswitch-label" for="dOut_2">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_2">
+        <button class="ReadButton" type="button" id="in_2">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>3</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_3">
+          <label class="onoffswitch-label" for="dMode_3">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_3">
+          <label class="onoffswitch-label" for="aIn_3">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_3">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_3">
+          <label class="onoffswitch-label" for="dOut_3">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_3">
+        <button class="ReadButton" type="button" id="in_3">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>4</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_4">
+          <label class="onoffswitch-label" for="dMode_4">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_4">
+          <label class="onoffswitch-label" for="aIn_4">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_4">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_4">
+          <label class="onoffswitch-label" for="dOut_4">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_4">
+        <button class="ReadButton" type="button" id="in_4">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>5</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_5">
+          <label class="onoffswitch-label" for="dMode_5">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_5">
+          <label class="onoffswitch-label" for="aIn_5">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_5">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_5">
+          <label class="onoffswitch-label" for="dOut_5">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_5">
+        <button class="ReadButton" type="button" id="in_5">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>6</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_6">
+          <label class="onoffswitch-label" for="dMode_6">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_6">
+          <label class="onoffswitch-label" for="aIn_6">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_6">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_6">
+          <label class="onoffswitch-label" for="dOut_6">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_6">
+        <button class="ReadButton" type="button" id="in_6">READ</button>
+      </div>
+    </div>
+    <div class="UILine">
+      <div class="UIChannelCell ">
+        <p>7</p>
+      </div>
+      <div class="UIcell ">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dMode_7">
+          <label class="onoffswitch-label" for="dMode_7">
+                        <span class="onoffswitch-inner digital"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="aIn_7">
+          <label class="onoffswitch-label" for="aIn_7">
+                        <span class="onoffswitch-inner analog"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="dOutCell_7">
+        <div class="onoffswitch">
+          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="dOut_7">
+          <label class="onoffswitch-label" for="dOut_7">
+                        <span class="onoffswitch-inner output"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+        </div>
+      </div>
+      <div class="UIcell" id="InCell_7">
+        <button class="ReadButton" type="button" id="in_7">READ</button>
+      </div>
+    </div>
+  </div>
+  <p></p>
+
+
+  <script>
+    class GroveIOBLE {
+
+      constructor() {
+        this.device = null;
+        this.onDisconnected = this.onDisconnected.bind(this);
+      }
+
+      groveIOUUID(UUID16bitString) {
+        return ('b2d5' + UUID16bitString + '-9f17-45b8-87bd-93d403ab0ff9')
+      }
+
+      request() {
+        let options = {
+          "filters": [{
+            "namePrefix": "MakeSenseIO BLE",
+          }],
+          optionalServices: [this.groveIOUUID('5e80')]
+        };
+        return navigator.bluetooth.requestDevice(options)
+          .then(device => {
+            this.device = device;
+            this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
+            return device;
+          });
+      }
+
+      connect() {
+        if (!this.device) {
+          return Promise.reject('Device is not connected.');
+        } else {
+          return this.device.gatt.connect();
+        }
+      }
+
+      readCharacteristic(uuid16bitString) {
+        return this.device.gatt.getPrimaryService(this.groveIOUUID('5e80'))
+          .then(service => service.getCharacteristic(this.groveIOUUID(uuid16bitString)))
+          .then(characteristic => characteristic.readValue());
+      }
+
+      writeCharacteristic(uuid16bitString, data) {
+        return this.device.gatt.getPrimaryService(this.groveIOUUID('5e80'))
+          .then(service => service.getCharacteristic(this.groveIOUUID(uuid16bitString)))
+          .then(characteristic => characteristic.writeValue(data));
+      }
+
+      disconnect() {
+        if (!this.device) {
+          return Promise.reject('Device is not connected.');
+        } else {
+          return this.device.gatt.disconnect();
+        }
+      }
+
+      onDisconnected() {
+        appendHtml(document.body, 'Device is disconnected.');
+      }
+
+      digitalReadHex() {
+        return this.readCharacteristic('5e81').then(value => value.getUint8());
+      }
+
+      digitalWriteHex(value) {
+        return this.writeCharacteristic('5e81', new Uint8Array([value]));
+      }
+
+      pinModeReadHex() {
+        return this.readCharacteristic('5e82').then(value => value.getUint8());
+      }
+
+      pinModeWriteHex(value) {
+        return this.writeCharacteristic('5e82', new Uint8Array([value]));
+      }
+
+      analogChannelWriteHex(value) {
+        return this.writeCharacteristic('5e83', new Uint8Array([value]));
+      }
+
+      analogValueReadHex() {
+        return this.readCharacteristic('5e84').then(value => value.getUint8());
+      }
+
+      bitOperation(value, bit, state) {
+        if (state) {
+          return (value | (1 << bit));
+        } else {
+          return (value & ~(1 << bit));
+        }
+      }
+
+      pinMode(pin, mode) {
+        if (this.device && this.device.gatt.connected) {
+          if (pin >= 0 && pin <= 7) {
+            return this.pinModeReadHex()
+              .then(value => this.pinModeWriteHex(this.bitOperation(value, pin, mode)));
+          }
+        }
+      }
+
+      digitalWrite(pin, mode) {
+        if (this.device && this.device.gatt.connected) {
+          if (pin >= 0 && pin <= 7) {
+            return this.digitalReadHex()
+              .then(value => this.digitalWriteHex(this.bitOperation(value, pin, mode)));
+          }
+        }
+      }
+
+      digitalRead(pin) {
+        if (this.device && this.device.gatt.connected) {
+          if (pin >= 0 && pin <= 7) {
+            return this.digitalReadHex()
+              .then(value => ((value & (1 << pin)) != 0));
+          }
+        }
+      }
+
+      analogRead(pin) {
+        if (this.device && this.device.gatt.connected) {
+          if (pin >= 0 && pin <= 7) {
+            return this.analogChannelWriteHex(pin).then(_ => this.analogValueReadHex());
+          }
+        }
+      }
+
+    }
+
+    var groveIOBLE = new GroveIOBLE();
+
+    function appendHtml(el, str) {
+      var div = document.createElement('div');
+      div.innerHTML = str;
+      el.appendChild(div);
+    }
+
+    var totalChannels = 8;
+
+    function updateFunctionCell() {
+      for (var i = 0; i < totalChannels; i++) {
+        var mode = document.getElementById("dMode_" + i).checked;
+        if (!mode) {
+          document.getElementById("dOutCell_" + i).style.display = 'none';
+          document.getElementById("InCell_" + i).style.display = 'table-cell';
+        } else {
+          document.getElementById("InCell_" + i).style.display = 'none';
+          document.getElementById("dOutCell_" + i).style.display = 'table-cell';
+        }
+      }
+    }
+
+    for (var i = 0; i < totalChannels; i++) {
+      document.getElementById("dMode_" + i).addEventListener('click', function(event) {
+        var id = Number(this.id.substr(this.id.length - 1));
+        groveIOBLE.pinMode(id, this.checked);
+        updateFunctionCell();
+      });
+      document.getElementById("aIn_" + i).addEventListener('click', function(event) {
+        updateFunctionCell();
+      });
+      document.getElementById("dOut_" + i).addEventListener('click', function(event) {
+        var id = Number(this.id.substr(this.id.length - 1));
+        groveIOBLE.digitalWrite(id, this.checked);
+      });
+      document.getElementById("in_" + i).addEventListener('click', function(event) {
+        var id = Number(this.id.substr(this.id.length - 1));
+        if (document.getElementById("aIn_" + id).checked) {
+          groveIOBLE.analogRead(id).then(value => this.innerHTML = value);
+        } else {
+          groveIOBLE.digitalRead(id).then(value => this.innerHTML = value ? "High" : "Low");
+        }
+      });
+    }
+
+    updateFunctionCell();
+
+    document.getElementById('buttonConnect').addEventListener('click', function() {
+      groveIOBLE.request()
+        .then(_ => groveIOBLE.connect())
+        .then(_ => {
+          /* Do something with simpleBLEPeripheral */
+          appendHtml(document.body, 'Device' + groveIOBLE.device.name + ' is connected.');
+          //return groveIOBLE.digitalReadHex();
+        }).catch(error => {
+          console.log(error)
+        });
+    });
+  </script>
+
+</body>
+
+</html>
