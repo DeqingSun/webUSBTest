@@ -1,0 +1,295 @@
+<HTML>
+
+<HEAD>
+    <!-- Origin Trial Token, feature = WebUSB, origin = https://deqingsun.github.io, expires = 2016-12-19 -->
+    <meta http-equiv="origin-trial" data-feature="WebUSB" data-expires="2016-12-19" content="ApTEXNqXj+1m5KrIUcE5HROPvpXuzAWl51PeuR0Tu0WUHRT9bsKvoouqV7ECvTl4D6mbbQv4KLV556Yjw5Y7FwwAAABYeyJvcmlnaW4iOiAiaHR0cHM6Ly9kZXFpbmdzdW4uZ2l0aHViLmlvOjQ0MyIsICJmZWF0dXJlIjogIldlYlVTQiIsICJleHBpcnkiOiAxNDgyMTYyNTk2fQ==">
+    <TITLE>
+        Remap FunkeyFunkey
+    </TITLE>
+    <script src="serial.js"></script>
+</HEAD>
+
+<BODY>
+    <p>
+        <button id="connect">Connect</button>
+        <label id="log"></label>
+    </p>
+    <P><img src="funkey.jpg"></P>
+    <p>
+        <button id="program">Program</button>
+        <button id="loadDefault">Load Default</button>
+    </p>
+    <div id="keySelects"></div>
+
+
+    <script>
+        var keycode = {
+            'MOUSE_MOVE_UP': -1
+            , 'MOUSE_MOVE_DOWN': -2
+            , 'MOUSE_MOVE_LEFT': -3
+            , 'MOUSE_MOVE_RIGHT': -4
+            , 'MOUSE_LEFT': 1
+            , 'MOUSE_RIGHT': 2
+            , 'KEY_UP_ARROW': 0xDA
+            , 'KEY_DOWN_ARROW': 0xD9
+            , 'KEY_LEFT_ARROW': 0xD8
+            , 'KEY_RIGHT_ARROW': 0xD7
+            , 'KEY_BACKSPACE': 0xB2
+            , 'KEY_TAB': 0xB3
+            , 'KEY_RETURN': 0xB0
+            , 'KEY_ESC': 0xB1
+            , 'KEY_INSERT': 0xD1
+            , 'KEY_DELETE': 0xD4
+            , 'KEY_PAGE_UP': 0xD3
+            , 'KEY_PAGE_DOWN': 0xD6
+            , 'KEY_HOME': 0xD2
+            , 'KEY_END': 0xD5
+            , 'KEY_SPACE': 0x20
+            , 'KEY_a': 0x61
+            , 'KEY_b': 0x62
+            , 'KEY_c': 0x63
+            , 'KEY_d': 0x64
+            , 'KEY_e': 0x65
+            , 'KEY_f': 0x66
+            , 'KEY_g': 0x67
+            , 'KEY_h': 0x68
+            , 'KEY_i': 0x69
+            , 'KEY_j': 0x6A
+            , 'KEY_k': 0x6B
+            , 'KEY_l': 0x6C
+            , 'KEY_m': 0x6D
+            , 'KEY_n': 0x6E
+            , 'KEY_o': 0x6F
+            , 'KEY_p': 0x70
+            , 'KEY_q': 0x71
+            , 'KEY_r': 0x72
+            , 'KEY_s': 0x73
+            , 'KEY_t': 0x74
+            , 'KEY_u': 0x75
+            , 'KEY_v': 0x76
+            , 'KEY_w': 0x77
+            , 'KEY_x': 0x78
+            , 'KEY_y': 0x79
+            , 'KEY_z': 0x7A
+            , 'KEY_0': 0x30
+            , 'KEY_1': 0x31
+            , 'KEY_2': 0x32
+            , 'KEY_3': 0x33
+            , 'KEY_4': 0x34
+            , 'KEY_5': 0x35
+            , 'KEY_6': 0x36
+            , 'KEY_7': 0x37
+            , 'KEY_8': 0x38
+            , 'KEY_9': 0x39
+        };
+
+        var defaultKeyMap = [
+            'KEY_UP_ARROW'
+
+
+            
+            , 'KEY_DOWN_ARROW'
+
+
+            
+            , 'KEY_LEFT_ARROW'
+
+
+            
+            , 'KEY_RIGHT_ARROW'
+
+
+            
+            , 'KEY_SPACE'
+
+
+            
+            , 'MOUSE_LEFT'
+
+
+            
+            , 'KEY_w'
+
+
+            
+            , 'KEY_a'
+
+
+            
+            , 'KEY_s'
+
+
+            
+            , 'KEY_d'
+
+
+            
+            , 'KEY_f'
+
+
+            
+            , 'KEY_g'
+
+
+            
+            , 'KEY_h'
+
+
+            
+            , 'KEY_i'
+
+
+            
+            , 'KEY_j'
+
+
+            
+            , 'KEY_k'
+
+
+            
+            , 'KEY_l'
+
+
+            
+            , 'KEY_m'
+        ];
+
+        var keySelects = document.getElementById("keySelects");
+        var totalKeys = 18;
+        for (var i = 0; i < totalKeys; i++) {
+            var oneKeyOption = document.createElement("select");
+            oneKeyOption.id = "oneKeySelect" + i;
+            for (var key in keycode) {
+                var option = document.createElement("option");
+                option.text = key;
+                oneKeyOption.appendChild(option);
+            }
+            var label = document.createElement("p");
+            label.innerHTML = "Key " + (i < 10 ? (i + " ") : i);
+            label.style.display = "inline";
+            label.style.fontFamily = "Monospace";
+            var divElement = document.createElement("div");
+            divElement.appendChild(label);
+            divElement.appendChild(oneKeyOption);
+            keySelects.appendChild(divElement);
+        }
+
+        document.getElementById("program").addEventListener("click", function () {
+            var msg = "";
+            for (var i = 0; i < totalKeys; i++) {
+                var selectElement = document.getElementById("oneKeySelect" + i);
+                keycodeValue = keycode[selectElement.value];
+                if (keycodeValue < 0) keycodeValue = 65536 + keycodeValue;
+                var commandID = ("00" + i.toString(16)).substr(-2);
+                var commandKeycode = ("0000" + keycodeValue.toString(16)).substr(-4);
+                var command = "S" + commandID + commandKeycode + "\n";
+                //console.log(command);
+                msg += command;
+            }
+            validPort.send(str2ab(msg));
+        });
+
+        var analyzeCommand = function (str) {
+            if (str.charAt(0) == 'r') {
+                var channel = parseInt(str.substring(1, 3), 16);
+                var value = parseInt(str.substring(3, 7), 16);
+                if (channel != NaN && value != NaN) {
+                    if (channel >= 0 && channel <= totalKeys) {
+                        for (var key in keycode) {
+                            if (keycode[key] == value) {
+                                var selectElement = document.getElementById("oneKeySelect" + channel);
+                                selectElement.value = key;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        var loadDefault = function () {
+            for (var i = 0; i < totalKeys; i++) {
+                var selectElement = document.getElementById("oneKeySelect" + i);
+                selectElement.value = defaultKeyMap[i];
+            }
+        }
+        document.getElementById("loadDefault").addEventListener("click", loadDefault);
+        loadDefault();
+
+        var log = function (str) {
+            document.getElementById("log").innerHTML = str;
+        }
+
+        var validPort = null;
+
+        /* Interprets an ArrayBuffer as UTF-8 encoded string data. */
+        var ab2str = function (buf) {
+            var bufView = new Uint8Array(buf);
+            var encodedString = String.fromCharCode.apply(null, bufView);
+            return decodeURIComponent(escape(encodedString));
+        };
+
+        /* Converts a string to UTF-8 encoding in a Uint8Array; returns the array buffer. */
+        var str2ab = function (str) {
+            var encodedString = unescape(encodeURIComponent(str));
+            var bytes = new Uint8Array(encodedString.length);
+            for (var i = 0; i < encodedString.length; ++i) {
+                bytes[i] = encodedString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        ////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////
+
+        function connect() {
+            log('Connecting to ' + validPort.device_.productName + '...');
+            validPort.connect().then(() => {
+                console.log(validPort);
+                log('Connected.');
+                document.getElementById('connect').textContent = 'Disconnect';
+                validPort.onReceive = data => {
+                    let textDecoder = new TextDecoder();
+                    analyzeCommand(textDecoder.decode(data));
+                    //console.log(textDecoder.decode(data));
+                    //var bufView = new Uint8Array(data.buffer);
+                    //modifiedFirmata.recvNewData(bufView);
+                }
+                validPort.onReceiveError = error => {
+                    log('Receive error: ' + error);
+                };
+                console.log("Connected\n")
+            }, error => {
+                log('Connection error: ' + error);
+            }).then(_ => {
+                validPort.send(str2ab("R\n"));
+            });
+        };
+
+        document.getElementById('connect').addEventListener('click', function () {
+            if (validPort) {
+                validPort.disconnect();
+                document.getElementById('connect').textContent = 'Connect';
+            } else {
+                serial.requestPort().then(selectedPort => {
+                    validPort = selectedPort;
+                    connect();
+                }).catch(error => {
+                    log('Connection error: ' + error);
+                });
+            }
+        });
+
+        serial.getPorts().then(ports => {
+            if (ports.length == 0) {
+                log('No devices found.');
+            } else {
+                validPort = ports[0];
+                connect();
+            }
+        });
+    </script>
+
+</BODY>
+
+</HTML>
