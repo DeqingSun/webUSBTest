@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <!-- Origin Trial Token, feature = WebUSB, origin = https://deqingsun.github.io, expires = 2017-01-24 -->
+    <meta http-equiv="origin-trial" data-feature="WebUSB" data-expires="2017-01-24" content="AiH6LEOeWweanSHGKeSsBYXiI9otHAUhTXbzVcTZi0vbmzFN1H8A6Rr+TJ/tmFS2nmO++zbfQUJzx14klOJ6TQoAAABTeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQiIsImV4cGlyeSI6MTQ4NTI3NDAyMH0=">
+    <title>Blockly Demo: Generating JavaScript</title>
+    <script src="./blockly_compressed.js"></script>
+    <script src="./blocks_compressed.js"></script>
+    <script src="./javascript_compressed.js"></script>
+    <script src="./msg/js/en.js"></script>
+
+    <script src="serial.js"></script>
+    <script src="modifiedFirmata.js"></script>
+    <script src="main.js"></script>
+    <style>
+        body {
+            background-color: #fff;
+            font-family: sans-serif;
+        }
+        
+        h1 {
+            font-weight: normal;
+            font-size: 140%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <p>This is a simple demo of generating code from blocks.</p>
+
+    <p>&rarr; More info on <a href="https://developers.google.com/blockly/guides/configure/web/code-generators">Code Generators</a>&hellip;</p>
+
+    <p>
+        <button onclick="connectWebUSB()" id="connect">Connect</button>
+    </p>
+
+    <p>
+        <button onclick="showCode()">Show JavaScript</button>
+        <button onclick="runCode()">Run JavaScript</button>
+    </p>
+
+    <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Logic">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_negate"></block>
+            <block type="logic_boolean"></block>
+        </category>
+        <category name="Loops">
+            <block type="controls_repeat_ext">
+                <value name="TIMES">
+                    <block type="math_number">
+                        <field name="NUM">10</field>
+                    </block>
+                </value>
+            </block>
+            <block type="controls_whileUntil"></block>
+        </category>
+        <category name="Math">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+            <block type="math_single"></block>
+        </category>
+        <category name="Text">
+            <block type="text"></block>
+            <block type="text_length"></block>
+            <block type="text_print"></block>
+        </category>
+        <category name="Variables" custom="VARIABLE"></category>
+        <category name="Funkey Firmata">
+            <block type="readdigital"></block>
+            <block type="writedigital"></block>
+        </category>
+    </xml>
+    <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text); -->
+    <xml id="startBlocks" style="display: none">
+        <block type="controls_if" inline="false" x="20" y="20">
+            <mutation else="1"></mutation>
+            <value name="IF0">
+                <block type="logic_compare" inline="true">
+                    <field name="OP">EQ</field>
+                    <value name="A">
+                        <block type="readdigital">
+                            <value name="CHANNEL">
+                                <block type="math_number">
+                                    <field name="NUM">7</field>
+                                </block>
+                            </value>
+                        </block>
+                    </value>
+                    <value name="B">
+                        <block type="logic_boolean">
+                            <field name="BOOL">TRUE</field>
+                        </block>
+                    </value>
+                </block>
+            </value>
+            <statement name="DO0">
+                <block type="writedigital">
+                    <value name="CHANNEL">
+                        <block type="math_number">
+                            <field name="NUM">10</field>
+                        </block>
+                    </value>
+                    <value name="VALUE">
+                        <block type="logic_boolean">
+                            <field name="BOOL">TRUE</field>
+                        </block>
+                    </value>
+                </block>
+            </statement>
+            <statement name="ELSE">
+                <block type="writedigital">
+                    <value name="CHANNEL">
+                        <block type="math_number">
+                            <field name="NUM">10</field>
+                        </block>
+                    </value>
+                    <value name="VALUE">
+                        <block type="logic_boolean">
+                            <field name="BOOL">FALSE</field>
+                        </block>
+                    </value>
+                </block>
+            </statement>
+        </block>
+    </xml>
+    <div id="buffer"></div>
+
+    <script>
+        Blockly.Blocks['readdigital'] = {
+            init: function () {
+                this.appendValueInput("CHANNEL")
+                    .setCheck("Number")
+                    .appendField("Digital Read Channel");
+                this.setOutput(true, null);
+                this.setColour(65);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
+
+        Blockly.Blocks['writedigital'] = {
+            init: function () {
+                this.appendValueInput("CHANNEL")
+                    .setCheck("Number")
+                    .appendField("Digital Write Channel");
+                this.appendValueInput("VALUE")
+                    .setCheck("Boolean")
+                    .setAlign(Blockly.ALIGN_RIGHT)
+                    .appendField("Level");
+                this.setPreviousStatement(true, null);
+                this.setNextStatement(true, null);
+                this.setColour(65);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
+
+        Blockly.JavaScript['readdigital'] = function (block) {
+            var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = '(modifiedFirmata.simpleReadDigital(' + value_channel + '))';
+            // TODO: Change ORDER_NONE to the correct strength.
+            return [code, Blockly.JavaScript.ORDER_NONE];
+        };
+
+        Blockly.JavaScript['writedigital'] = function (block) {
+            var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
+            var value_value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = '(modifiedFirmata.simpleWriteDigital(' + value_channel + ',' + value_value + '));\n';
+            return code;
+        };
+
+        var workspace = Blockly.inject('blocklyDiv', {
+            media: './media/'
+            , toolbox: document.getElementById('toolbox')
+        });
+        Blockly.Xml.domToWorkspace(document.getElementById('startBlocks')
+            , workspace);
+
+        function showCode() {
+            // Generate JavaScript code and display it.
+            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            alert(code);
+        }
+
+        function runCode() {
+            // Generate JavaScript code and run it.
+            window.LoopTrap = 1000;
+            Blockly.JavaScript.INFINITE_LOOP_TRAP =
+                'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+            try {
+                eval(code);
+            } catch (e) {
+                alert(e);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
