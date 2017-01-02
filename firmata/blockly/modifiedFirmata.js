@@ -82,7 +82,7 @@ var ModifiedFirmata = function () {
     this.pinMode = function (pin, mode) {
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].mode = mode;
-        this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
     };
 
     this.digitalWrite = function (pin, value) {
@@ -95,23 +95,23 @@ var ModifiedFirmata = function () {
                 portValue |= (1 << i);
             }
         }
-        this.serialconnection.sendRaw(new Uint8Array([DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F]));
     }
 
     this.queryPinState = function (pin) {
-        this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
     };
 
     this.setDigitalReport = function (port, value) {
-        this.serialconnection.sendRaw(new Uint8Array([REPORT_DIGITAL | (port & 0x0F), value ? 1 : 0]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([REPORT_DIGITAL | (port & 0x0F), value ? 1 : 0]));
     };
 
     this.setAnalogReport = function (pin, value) {
-        this.serialconnection.sendRaw(new Uint8Array([REPORT_ANALOG | (pin & 0x0F), value ? 1 : 0]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([REPORT_ANALOG | (pin & 0x0F), value ? 1 : 0]));
     };
 
     this.sendKeycode = function (keycode) {
-        this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x0F, keycode, END_SYSEX]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x0F, keycode, END_SYSEX]));
     };
 
     this.sendString = function (str) {

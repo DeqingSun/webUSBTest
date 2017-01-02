@@ -10,6 +10,7 @@
     <script src="./blocks_compressed.js"></script>
     <script src="./javascript_compressed.js"></script>
     <script src="./msg/js/en.js"></script>
+    <script src="acorn_interpreter.js"></script>
 
     <script src="serial.js"></script>
     <script src="modifiedFirmata.js"></script>
@@ -31,14 +32,13 @@
 
     <p>This is a simple demo of generating code from blocks.</p>
 
-    <p>&rarr; More info on <a href="https://developers.google.com/blockly/guides/configure/web/code-generators">Code Generators</a>&hellip;</p>
-
     <p>
         <button onclick="connectWebUSB()" id="connect">Connect</button>
     </p>
 
     <p>
-        <button onclick="showCode()">Show JavaScript</button>
+        <button onclick="parseCode()">Parse JavaScript</button>
+        <button onclick="stepCode()" id="stepButton" disabled="disabled">Step JavaScript</button>
         <button onclick="runCode()">Run JavaScript</button>
     </p>
 
@@ -166,7 +166,7 @@
         Blockly.JavaScript['readdigital'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
-            var code = '(modifiedFirmata.simpleReadDigital(' + value_channel + '))';
+            var code = 'modifiedFirmata_simpleReadDigital(' + value_channel + ')';
             // TODO: Change ORDER_NONE to the correct strength.
             return [code, Blockly.JavaScript.ORDER_NONE];
         };
@@ -175,7 +175,7 @@
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             var value_value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
-            var code = '(modifiedFirmata.simpleWriteDigital(' + value_channel + ',' + value_value + '));\n';
+            var code = 'modifiedFirmata_simpleWriteDigital(' + value_channel + ',' + value_value + ');';
             return code;
         };
 
@@ -186,16 +186,93 @@
         Blockly.Xml.domToWorkspace(document.getElementById('startBlocks')
             , workspace);
 
-        function showCode() {
-            // Generate JavaScript code and display it.
-            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+        var myInterpreter = null;
+
+        function initApi(interpreter, scope) {
+            // Add an API function for the alert() block.
+            var wrapper = function (text) {
+                text = text ? text.toString() : '';
+                return interpreter.createPrimitive(alert(text));
+            };
+            interpreter.setProperty(scope, 'alert'
+                , interpreter.createNativeFunction(wrapper));
+
+            // Add an API function for the prompt() block.
+            var wrapper = function (text) {
+                text = text ? text.toString() : '';
+                return interpreter.createPrimitive(prompt(text));
+            };
+            interpreter.setProperty(scope, 'prompt'
+                , interpreter.createNativeFunction(wrapper));
+
+            // Add an API function for highlighting blocks.
+            var wrapper = function (id) {
+                id = id ? id.toString() : '';
+                return interpreter.createPrimitive(highlightBlock(id));
+            };
+            interpreter.setProperty(scope, 'highlightBlock'
+                , interpreter.createNativeFunction(wrapper));
+
+            // Add an API function for the readdigital() block.
+            var wrapper = function (channel) {
+                channel = channel ? channel.toString() : '';
+                return interpreter.createPrimitive(modifiedFirmata.simpleReadDigital(channel));
+            };
+            interpreter.setProperty(scope, 'modifiedFirmata_simpleReadDigital'
+                , interpreter.createNativeFunction(wrapper));
+            // Add an API function for the writedigital() block.
+            var wrapper = function (channel,value) {
+                channel = channel ? channel.toString() : '';
+                value = (value && value.data) ? true : false;
+                return interpreter.createPrimitive(modifiedFirmata.simpleWriteDigital(channel, value));
+            };
+            interpreter.setProperty(scope, 'modifiedFirmata_simpleWriteDigital'
+                , interpreter.createNativeFunction(wrapper));
+        }
+
+        var highlightPause = false;
+
+        function highlightBlock(id) {
+            workspace.highlightBlock(id);
+            highlightPause = true;
+        }
+
+        function parseCode() {
+            // Generate JavaScript code and parse it.
+            Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+            Blockly.JavaScript.addReservedWords('highlightBlock');
             var code = Blockly.JavaScript.workspaceToCode(workspace);
-            alert(code);
+            myInterpreter = new Interpreter(code, initApi);
+
+            alert('Ready to execute this code:\n\n' + code);
+            document.getElementById('stepButton').disabled = '';
+            highlightPause = false;
+            workspace.highlightBlock(null);
+        }
+
+        function stepCode() {
+            try {
+                var ok = myInterpreter.step();
+            } finally {
+                if (!ok) {
+                    // Program complete, no more code to execute.
+                    document.getElementById('stepButton').disabled = 'disabled';
+                    workspace.highlightBlock(null);
+                    return;
+                }
+            }
+            if (highlightPause) {
+                // A block has been highlighted.  Pause execution here.
+                highlightPause = false;
+            } else {
+                // Keep executing until a highlight statement is reached.
+                stepCode();
+            }
         }
 
         function runCode() {
             // Generate JavaScript code and run it.
-            window.LoopTrap = 1000;
+            /*window.LoopTrap = 1000;
             Blockly.JavaScript.INFINITE_LOOP_TRAP =
                 'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
             var code = Blockly.JavaScript.workspaceToCode(workspace);
@@ -204,7 +281,7 @@
                 eval(code);
             } catch (e) {
                 alert(e);
-            }
+            }*/
         }
     </script>
 
