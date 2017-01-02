@@ -40,6 +40,7 @@
         <button onclick="parseCode()">Parse JavaScript</button>
         <button onclick="stepCode()" id="stepButton" disabled="disabled">Step JavaScript</button>
         <button onclick="runCode()">Run JavaScript</button>
+        <button onclick="stopCode()">Stop JavaScript</button>
     </p>
 
     <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
@@ -76,57 +77,76 @@
         <category name="Funkey Firmata">
             <block type="readdigital"></block>
             <block type="writedigital"></block>
+            <block type="delay"></block>
         </category>
     </xml>
     <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text); -->
     <xml id="startBlocks" style="display: none">
-        <block type="controls_if" inline="false" x="20" y="20">
-            <mutation else="1"></mutation>
-            <value name="IF0">
-                <block type="logic_compare" inline="true">
-                    <field name="OP">EQ</field>
-                    <value name="A">
-                        <block type="readdigital">
-                            <value name="CHANNEL">
-                                <block type="math_number">
-                                    <field name="NUM">7</field>
-                                </block>
-                            </value>
-                        </block>
-                    </value>
-                    <value name="B">
-                        <block type="logic_boolean">
-                            <field name="BOOL">TRUE</field>
-                        </block>
-                    </value>
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <block type="math_number">
+                    <field name="NUM">999</field>
                 </block>
             </value>
-            <statement name="DO0">
-                <block type="writedigital">
-                    <value name="CHANNEL">
+            <statement name="DO">
+                <block type="delay">
+                    <value name="millis">
                         <block type="math_number">
                             <field name="NUM">10</field>
                         </block>
                     </value>
-                    <value name="VALUE">
-                        <block type="logic_boolean">
-                            <field name="BOOL">TRUE</field>
+                    <next>
+                        <block type="controls_if">
+                            <mutation else="1"></mutation>
+                            <value name="IF0">
+                                <block type="logic_compare">
+                                    <field name="OP">EQ</field>
+                                    <value name="A">
+                                        <block type="readdigital">
+                                            <value name="CHANNEL">
+                                                <block type="math_number">
+                                                    <field name="NUM">7</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </value>
+                                    <value name="B">
+                                        <block type="logic_boolean">
+                                            <field name="BOOL">TRUE</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </value>
+                            <statement name="DO0">
+                                <block type="writedigital">
+                                    <value name="CHANNEL">
+                                        <block type="math_number">
+                                            <field name="NUM">10</field>
+                                        </block>
+                                    </value>
+                                    <value name="VALUE">
+                                        <block type="logic_boolean">
+                                            <field name="BOOL">TRUE</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </statement>
+                            <statement name="ELSE">
+                                <block type="writedigital">
+                                    <value name="CHANNEL">
+                                        <block type="math_number">
+                                            <field name="NUM">10</field>
+                                        </block>
+                                    </value>
+                                    <value name="VALUE">
+                                        <block type="logic_boolean">
+                                            <field name="BOOL">FALSE</field>
+                                        </block>
+                                    </value>
+                                </block>
+                            </statement>
                         </block>
-                    </value>
-                </block>
-            </statement>
-            <statement name="ELSE">
-                <block type="writedigital">
-                    <value name="CHANNEL">
-                        <block type="math_number">
-                            <field name="NUM">10</field>
-                        </block>
-                    </value>
-                    <value name="VALUE">
-                        <block type="logic_boolean">
-                            <field name="BOOL">FALSE</field>
-                        </block>
-                    </value>
+                    </next>
                 </block>
             </statement>
         </block>
@@ -163,6 +183,19 @@
             }
         };
 
+        Blockly.Blocks['delay'] = {
+            init: function () {
+                this.appendValueInput("millis")
+                    .setCheck("Number")
+                    .appendField("delayMillis");
+                this.setPreviousStatement(true, null);
+                this.setNextStatement(true, null);
+                this.setColour(65);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
+
         Blockly.JavaScript['readdigital'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
@@ -179,6 +212,13 @@
             return code;
         };
 
+        Blockly.JavaScript['delay'] = function (block) {
+            var value_millis = Blockly.JavaScript.valueToCode(block, 'millis', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = 'blocklyDelay(' + value_millis + ');';
+            return code;
+        };
+
         var workspace = Blockly.inject('blocklyDiv', {
             media: './media/'
             , toolbox: document.getElementById('toolbox')
@@ -187,6 +227,8 @@
             , workspace);
 
         var myInterpreter = null;
+        var runStepsTimeout = null;
+        var runStepsStop = false;
 
         function initApi(interpreter, scope) {
             // Add an API function for the alert() block.
@@ -221,13 +263,22 @@
             interpreter.setProperty(scope, 'modifiedFirmata_simpleReadDigital'
                 , interpreter.createNativeFunction(wrapper));
             // Add an API function for the writedigital() block.
-            var wrapper = function (channel,value) {
+            var wrapper = function (channel, value) {
                 channel = channel ? channel.toString() : '';
                 value = (value && value.data) ? true : false;
                 return interpreter.createPrimitive(modifiedFirmata.simpleWriteDigital(channel, value));
             };
             interpreter.setProperty(scope, 'modifiedFirmata_simpleWriteDigital'
                 , interpreter.createNativeFunction(wrapper));
+
+            var wrapper = function (millis, callback) {
+                millis = millis ? millis.toString() : '';
+                var callbackFunc = function () {
+                    callback(interpreter.createPrimitive());
+                }
+                setTimeout(callbackFunc, millis);
+            };
+            interpreter.setProperty(scope, 'blocklyDelay', interpreter.createAsyncFunction(wrapper));
         }
 
         var highlightPause = false;
@@ -248,9 +299,12 @@
             document.getElementById('stepButton').disabled = '';
             highlightPause = false;
             workspace.highlightBlock(null);
+
+            clearTimeout(runStepsTimeout);
         }
 
         function stepCode() {
+            clearTimeout(runStepsTimeout);
             try {
                 var ok = myInterpreter.step();
             } finally {
@@ -271,17 +325,45 @@
         }
 
         function runCode() {
-            // Generate JavaScript code and run it.
-            /*window.LoopTrap = 1000;
-            Blockly.JavaScript.INFINITE_LOOP_TRAP =
-                'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
+            // Generate JavaScript code and parse it.
+            Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+            Blockly.JavaScript.addReservedWords('highlightBlock');
             var code = Blockly.JavaScript.workspaceToCode(workspace);
-            Blockly.JavaScript.INFINITE_LOOP_TRAP = null;
+            myInterpreter = new Interpreter(code, initApi);
+
+            document.getElementById('stepButton').disabled = '';
+            highlightPause = false;
+            workspace.highlightBlock(null);
+            clearTimeout(runStepsTimeout);
+            runStepsTimeout = setTimeout("runSteps()", 0);
+            runStepsStop = false;
+        }
+
+        function runSteps() {
+            clearTimeout(runStepsTimeout);
             try {
-                eval(code);
-            } catch (e) {
-                alert(e);
-            }*/
+                var ok = myInterpreter.step();
+            } finally {
+                if (!ok) {
+                    // Program complete, no more code to execute.
+                    document.getElementById('stepButton').disabled = 'disabled';
+                    workspace.highlightBlock(null);
+                    return;
+                }
+            }
+
+            if (runStepsStop) {
+                // A block has been highlighted.  Pause execution here.
+                //highlightPause = false;
+            } else {
+                // Keep executing until a highlight statement is reached.
+                runStepsTimeout = setTimeout("runSteps()", 0);
+            }
+        }
+
+        function stopCode() {
+            clearTimeout(runStepsTimeout);
+            runStepsStop = true;
         }
     </script>
 
