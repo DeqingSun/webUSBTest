@@ -37,10 +37,9 @@
     </p>
 
     <p>
-        <button onclick="parseCode()">Parse JavaScript</button>
-        <button onclick="stepCode()" id="stepButton" disabled="disabled">Step JavaScript</button>
-        <button onclick="runCode()">Run JavaScript</button>
-        <button onclick="stopCode()">Stop JavaScript</button>
+        <button onclick="runCode()" id="runButton">Run JavaScript with highlight</button>
+        <button onclick="runFullspeedCode()" id="runFullSpeedButton">Run JavaScript Fullspeed</button>
+        <button onclick="stopCode()" id="stopButton" disabled="disabled">Stop JavaScript</button>
     </p>
 
     <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
@@ -288,42 +287,6 @@
             highlightPause = true;
         }
 
-        function parseCode() {
-            // Generate JavaScript code and parse it.
-            Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
-            Blockly.JavaScript.addReservedWords('highlightBlock');
-            var code = Blockly.JavaScript.workspaceToCode(workspace);
-            myInterpreter = new Interpreter(code, initApi);
-
-            alert('Ready to execute this code:\n\n' + code);
-            document.getElementById('stepButton').disabled = '';
-            highlightPause = false;
-            workspace.highlightBlock(null);
-
-            clearTimeout(runStepsTimeout);
-        }
-
-        function stepCode() {
-            clearTimeout(runStepsTimeout);
-            try {
-                var ok = myInterpreter.step();
-            } finally {
-                if (!ok) {
-                    // Program complete, no more code to execute.
-                    document.getElementById('stepButton').disabled = 'disabled';
-                    workspace.highlightBlock(null);
-                    return;
-                }
-            }
-            if (highlightPause) {
-                // A block has been highlighted.  Pause execution here.
-                highlightPause = false;
-            } else {
-                // Keep executing until a highlight statement is reached.
-                stepCode();
-            }
-        }
-
         function runCode() {
             // Generate JavaScript code and parse it.
             Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
@@ -331,7 +294,10 @@
             var code = Blockly.JavaScript.workspaceToCode(workspace);
             myInterpreter = new Interpreter(code, initApi);
 
-            document.getElementById('stepButton').disabled = '';
+            document.getElementById('stopButton').disabled = '';
+            document.getElementById('runButton').disabled = 'disabled';
+            document.getElementById('runFullSpeedButton').disabled = 'disabled';
+
             highlightPause = false;
             workspace.highlightBlock(null);
             clearTimeout(runStepsTimeout);
@@ -346,7 +312,9 @@
             } finally {
                 if (!ok) {
                     // Program complete, no more code to execute.
-                    document.getElementById('stepButton').disabled = 'disabled';
+                    document.getElementById('stopButton').disabled = 'disabled';
+                    document.getElementById('runButton').disabled = '';
+                    document.getElementById('runFullSpeedButton').disabled = '';
                     workspace.highlightBlock(null);
                     return;
                 }
@@ -363,7 +331,41 @@
 
         function stopCode() {
             clearTimeout(runStepsTimeout);
-            runStepsStop = true;
+            if (!runStepsStop) runStepsStop = true;
+
+            document.getElementById('stopButton').disabled = 'disabled';
+            document.getElementById('runButton').disabled = '';
+            document.getElementById('runFullSpeedButton').disabled = '';
+        }
+
+        function runFullspeedCode() {
+            runStepsStop = false;
+
+            document.getElementById('stopButton').disabled = '';
+            document.getElementById('runButton').disabled = 'disabled';
+            document.getElementById('runFullSpeedButton').disabled = 'disabled';
+
+            // Generate JavaScript code and parse it.
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            myInterpreter = new Interpreter(code, initApi);
+            tryToStart();
+            //console.log(myInterpreter.run());
+        }
+
+        function tryToStart() {
+            var thereAreStillCodeLeftToRun = myInterpreter.run();
+            if (thereAreStillCodeLeftToRun) {
+                if (!runStepsStop) {
+                    // Ran until an async call.  Give this call a chance to run.
+                    // Then start running again later.
+                    // Check if code can continue.
+                    setTimeout(tryToStart, 10);
+                }
+            } else {
+                document.getElementById('stopButton').disabled = 'disabled';
+                document.getElementById('runButton').disabled = '';
+                document.getElementById('runFullSpeedButton').disabled = '';
+            }
         }
     </script>
 
