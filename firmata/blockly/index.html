@@ -75,11 +75,13 @@
         <category name="Variables" custom="VARIABLE"></category>
         <category name="Funkey Firmata">
             <block type="readdigital"></block>
+            <block type="readanalog"></block>
             <block type="writedigital"></block>
             <block type="delay"></block>
         </category>
     </xml>
-    <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text); -->
+    <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text.replace(/\s+id=".*?"/g, "")); -->
+    <!-- regex to match id -->
     <xml id="startBlocks" style="display: none">
         <block type="controls_repeat_ext">
             <value name="TIMES">
@@ -144,6 +146,58 @@
                                     </value>
                                 </block>
                             </statement>
+                            <next>
+                                <block type="controls_if">
+                                    <mutation else="1"></mutation>
+                                    <value name="IF0">
+                                        <block type="logic_compare">
+                                            <field name="OP">GT</field>
+                                            <value name="A">
+                                                <block type="readanalog">
+                                                    <value name="CHANNEL">
+                                                        <block type="math_number">
+                                                            <field name="NUM">0</field>
+                                                        </block>
+                                                    </value>
+                                                </block>
+                                            </value>
+                                            <value name="B">
+                                                <block type="math_number">
+                                                    <field name="NUM">512</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </value>
+                                    <statement name="DO0">
+                                        <block type="writedigital">
+                                            <value name="CHANNEL">
+                                                <block type="math_number">
+                                                    <field name="NUM">9</field>
+                                                </block>
+                                            </value>
+                                            <value name="VALUE">
+                                                <block type="logic_boolean">
+                                                    <field name="BOOL">TRUE</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </statement>
+                                    <statement name="ELSE">
+                                        <block type="writedigital">
+                                            <value name="CHANNEL">
+                                                <block type="math_number">
+                                                    <field name="NUM">9</field>
+                                                </block>
+                                            </value>
+                                            <value name="VALUE">
+                                                <block type="logic_boolean">
+                                                    <field name="BOOL">FALSE</field>
+                                                </block>
+                                            </value>
+                                        </block>
+                                    </statement>
+                                </block>
+                            </next>
                         </block>
                     </next>
                 </block>
@@ -158,7 +212,19 @@
                 this.appendValueInput("CHANNEL")
                     .setCheck("Number")
                     .appendField("Digital Read Channel");
-                this.setOutput(true, null);
+                this.setOutput(true, "Boolean");
+                this.setColour(65);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
+
+        Blockly.Blocks['readanalog'] = {
+            init: function () {
+                this.appendValueInput("CHANNEL")
+                    .setCheck("Number")
+                    .appendField("Analog Read Channel");
+                this.setOutput(true, "Number");
                 this.setColour(65);
                 this.setTooltip('');
                 this.setHelpUrl('http://www.example.com/');
@@ -199,6 +265,14 @@
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
             var code = 'modifiedFirmata_simpleReadDigital(' + value_channel + ')';
+            // TODO: Change ORDER_NONE to the correct strength.
+            return [code, Blockly.JavaScript.ORDER_NONE];
+        };
+
+        Blockly.JavaScript['readanalog'] = function (block) {
+            var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = 'modifiedFirmata_simpleReadAnalog(' + value_channel + ')';
             // TODO: Change ORDER_NONE to the correct strength.
             return [code, Blockly.JavaScript.ORDER_NONE];
         };
@@ -261,6 +335,15 @@
             };
             interpreter.setProperty(scope, 'modifiedFirmata_simpleReadDigital'
                 , interpreter.createNativeFunction(wrapper));
+
+            // Add an API function for the readanalog() block.
+            var wrapper = function (channel) {
+                channel = channel ? channel.toString() : '';
+                return interpreter.createPrimitive(modifiedFirmata.simpleReadAnalog(channel));
+            };
+            interpreter.setProperty(scope, 'modifiedFirmata_simpleReadAnalog'
+                , interpreter.createNativeFunction(wrapper));
+
             // Add an API function for the writedigital() block.
             var wrapper = function (channel, value) {
                 channel = channel ? channel.toString() : '';
