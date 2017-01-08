@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <script>
+        function connect1() {
+            var filters = [
+                {
+                    'vendorId': 0x2341
+                    , 'productId': 0x8036
+                }
+                
+                , {
+                    'vendorId': 0x2341
+                    , 'productId': 0x8037
+                }
+    
+                , ];
+            navigator.usb.requestDevice({
+                'filters': filters
+            }).then(
+                device => console.log(device)
+            );
+        }
+    </script>
+</head>
+
+<body>
+    <button onclick='connect1()'>Connect in page</button>
+    <iframe srcdoc="
+<html>
+
+<head>
+    <script>
+        function connect2() {
+            var filters = [
+                {
+                    'vendorId': 0x2341
+                    , 'productId': 0x8036
+                }
+                
+                , {
+                    'vendorId': 0x2341
+                    , 'productId': 0x8037
+                }
+    
+                , ];
+            navigator.usb.requestDevice({
+                'filters': filters
+            }).then(
+                device => console.log(device)
+            );
+        }
+    </script>
+</head>
+
+<body>
+    <button onclick='connect2()'>Connect in iframe</button>    
+</body></html>"></iframe>
+
+
+</body>
+
+</html>
