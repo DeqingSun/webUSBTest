@@ -55,3 +55,12 @@ document.getElementById('sendLeftArrow').addEventListener('click', function () {
     timeLeftArrow=3;
     window.setTimeout(countingDownArrow, 0);
 });
+
+//USB DEBUG
+function getChromeVersion () {     
+    var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9\.]+)\./);
+
+    return raw ? (raw[2]) : false;
+}
+log('Chrome Version: '+getChromeVersion());
+if (!navigator.usb) log("navigator.usb ERROR")
