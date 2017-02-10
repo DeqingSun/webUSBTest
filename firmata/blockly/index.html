@@ -10,6 +10,7 @@
     <script src="./blocks_compressed.js"></script>
     <script src="./javascript_compressed.js"></script>
     <script src="./msg/js/en.js"></script>
+    <script src="./storage.js"></script>
     <script src="acorn_interpreter.js"></script>
 
     <script src="serial.js"></script>
@@ -40,6 +41,7 @@
         <button onclick="runCode()" id="runButton">Run JavaScript with highlight</button>
         <button onclick="runFullspeedCode()" id="runFullSpeedButton">Run JavaScript Fullspeed</button>
         <button onclick="stopCode()" id="stopButton" disabled="disabled">Stop JavaScript</button>
+        <button onclick="saveCode()" id="saveButton">Save on Cloud</button>
     </p>
 
     <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
@@ -298,6 +300,11 @@
         });
         Blockly.Xml.domToWorkspace(document.getElementById('startBlocks')
             , workspace);
+            
+        // An href with #key trigers an AJAX call to retrieve saved blocks.
+        if ('BlocklyStorage' in window && window.location.hash.length > 1) {
+            BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+        }
 
         var myInterpreter = null;
         var runStepsTimeout = null;
@@ -449,6 +456,10 @@
                 document.getElementById('runButton').disabled = '';
                 document.getElementById('runFullSpeedButton').disabled = '';
             }
+        }
+        
+        function saveCode(){
+            BlocklyStorage.link();
         }
     </script>
 

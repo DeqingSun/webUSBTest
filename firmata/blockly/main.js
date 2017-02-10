@@ -56,14 +56,28 @@ function connectWebUSB() {
     }
 };
 
-serial.getPorts().then(ports => {
-    if (ports.length == 0) {
-        log('No devices found.');
-    } else {
-        validPort = ports[0];
-        connect();
-    }
-});
+
+if (!navigator.usb){
+    setTimeout(function(){ log("navigator.usb ERROR") }, 0);
+}else{
+    serial.getPorts().then(ports => {
+        if (ports.length == 0) {
+            log('No devices found.');
+        } else {
+            validPort = ports[0];
+            connect();
+        }
+    });
+}
+
+if ('BlocklyStorage' in window) {
+    BlocklyStorage.HTTPREQUEST_ERROR = 'There was a problem with the request.\n';
+    BlocklyStorage.LINK_ALERT = 'Share your blocks with this link:\n\n%1';
+    BlocklyStorage.HASH_ERROR = 'Sorry, "%1" doesn\'t correspond with any saved Blockly file.';
+    BlocklyStorage.XML_ERROR = 'Could not load your saved file.\nPerhaps it was created with a different version of Blockly?';
+} else {
+	setTimeout(function(){log("Sorry, cloud storage is not available.")},0);
+}
 
 var SerialConnection = function () {
 
