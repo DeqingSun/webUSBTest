@@ -98,10 +98,10 @@ var connection = new SerialConnection();
 
 function log(msg) {
     var buffer = document.querySelector('#buffer');
-    buffer.innerHTML += msg + '<br>';
+    buffer.innerHTML = msg + '<br>' + buffer.innerHTML;
     var lines = buffer.innerHTML.split('<br>');
     if (lines.length > 10 - 1) {
-        lines.shift();
+        lines.pop();
         buffer.innerHTML = lines.join('<br>');
     }
 }

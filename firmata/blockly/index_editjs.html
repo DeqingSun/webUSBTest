@@ -80,6 +80,7 @@
             <block type="readanalog"></block>
             <block type="writedigital"></block>
             <block type="delay"></block>
+            <block type="text_log"></block>
         </category>
     </xml>
     <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text.replace(/\s+id=".*?"/g, "")); -->
@@ -262,6 +263,19 @@
                 this.setHelpUrl('http://www.example.com/');
             }
         };
+        
+        Blockly.Blocks['text_log'] = {
+            init: function () {
+                this.appendValueInput("text")
+                    .setCheck(null)
+                    .appendField("log");
+                this.setPreviousStatement(true, null);
+                this.setNextStatement(true, null);
+                this.setColour(160);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
 
         Blockly.JavaScript['readdigital'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
@@ -294,6 +308,13 @@
             return code;
         };
 
+        Blockly.JavaScript['text_log'] = function (block) {
+            var value_text = Blockly.JavaScript.valueToCode(block, 'text', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = 'log(' + value_text + ');';
+            return code;
+        };
+
         var workspace = Blockly.inject('blocklyDiv', {
             media: './media/'
             , toolbox: document.getElementById('toolbox')
@@ -312,6 +333,14 @@
                 return interpreter.createPrimitive(alert(text));
             };
             interpreter.setProperty(scope, 'alert'
+                , interpreter.createNativeFunction(wrapper));
+            
+            // Add an API function for the log() block.
+            var wrapper = function (text) {
+                text = text ? text.toString() : '';
+                return interpreter.createPrimitive(log(text));
+            };
+            interpreter.setProperty(scope, 'log'
                 , interpreter.createNativeFunction(wrapper));
 
             // Add an API function for the prompt() block.
