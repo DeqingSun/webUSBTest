@@ -1,18 +1,24 @@
 var grassArray = [];
-var grassXcount = 45;
-var grassYcount = 32;
+var grassXcount = 45 - 34 * 0;
+var grassYcount = 32 - 18 * 0;
 
 var lastMillis;
 
-var kicked = true; //init Kick
-var kickTime;
+var personOnRight = false;
+var personSpeed = 0;
+var personPosition = 0;
+
+//var kicked = true; //init Kick
 
 var halfRoadWidth = 24;
 
 var fpsArray = [30, 30, 30, 30, 30];
 
+var currentMode = 'ripple';
+
 function setup() {
-  createCanvas(1024, 768, WEBGL);
+  var canvas = createCanvas(800 / 1, 600 / 1, WEBGL);
+  canvas.parent('sketch-holder');
   for (i = 0; i < grassXcount; i++) {
     grassArray[i] = [];
     for (j = 0; j < grassYcount; j++) {
@@ -32,44 +38,26 @@ function setup() {
 function draw() {
   background(240);
   ambientLight(200);
-  //var dirX = (mouseX / width - 0.5) *2;
-  //var dirY = (mouseY / height - 0.5) *(-2);
+
   directionalLight(250, 250, 250, -1, -1, 0.25);
   ambientMaterial('#43a047');
   noStroke();
 
-translate(-75, -150, 0);
+  //translate(-75, -150, 0);
 
-  orbitControl();
-  scale(1.3);
-  rotateX(PI / 8+PI / 8);
-  rotateY(-PI / 4-PI / 8);
+  myOrbitControl();
+  scale(1.0 * 1);
+  rotateX(PI / 8 + PI / 8);
+  rotateY(-PI / 4 - PI / 8);
 
-  //var dirX = (mouseX / width - 0.5) *2;
-  //var dirY = (mouseY / height - 0.5) *(-2);
-
-  //rotateX(PI*dirY / 4);
-  //rotateY(-PI*dirX / 4);
   var nowMillis = millis();
   var deltaPhase = TWO_PI * (nowMillis - lastMillis) / 2500;
 
-  if (kicked) {
-    kickTime = nowMillis;
-    kicked = false;
-  }
-
-  var kickMax = halfRoadWidth + ((nowMillis - kickTime) * 12 / 1000); //12in per sec
-  var kickMin = halfRoadWidth + ((lastMillis - kickTime) * 12 / 1000); //12in per sec
 
 
   for (i = 0; i < grassXcount; i++) {
     for (j = 0; j < grassYcount; j++) {
-      var distance = dist(0, 0, grassArray[i][j].x, grassArray[i][j].z);
-      if (distance > kickMin && distance < kickMax) {
-        grassArray[i][j].kick();
-      } else {
-        grassArray[i][j].move(deltaPhase);
-      }
+      grassArray[i][j].move(deltaPhase, nowMillis);
     }
   }
 
@@ -88,6 +76,42 @@ translate(-75, -150, 0);
   plane(grassXcount * 12, halfRoadWidth * 2);
   pop();
 
+  //draw Person
+  if (currentMode=='line') {
+    if (personSpeed != 0) {
+      var OldPosition = personPosition;
+      personPosition += personSpeed;
+      personPosition = constrain(personPosition, -grassXcount * 6, grassXcount * 6);
+
+      var minPos = Math.min.apply(Math, [OldPosition, personPosition]),
+        maxPos = Math.max.apply(Math, [OldPosition, personPosition]);
+
+      if (minPos != maxPos) {
+        for (i = 0; i < grassXcount; i++) {
+          var grassPostion = grassArray[i][0].x;
+          if (minPos < grassPostion && grassPostion <= maxPos) {
+            for (j = 0; j < grassYcount; j++) {
+              if ((personOnRight && (grassArray[i][j].z<0))||(!personOnRight && (grassArray[i][j].z>0))) {
+                var distance = dist(grassPostion, 0, grassArray[i][j].x, grassArray[i][j].z);
+                distance = distance - halfRoadWidth - 6; //grass has gap of 12
+                grassArray[i][j].kick(nowMillis + distance * 1000 / 36); //36in per sec
+              }
+            }
+          }
+        }
+      }
+
+    }
+    push();
+    ambientMaterial('#E57373');
+    translate(personPosition, 0, personOnRight ? -10 : 10);
+    translate(0, -12, 0);
+    cone(6, 72, 4, 1)
+    translate(0, -36, 0);
+    sphere(6, 4, 2);
+    pop();
+  }
+
   lastMillis = nowMillis;
 
   var fps = frameRate();
@@ -103,7 +127,7 @@ translate(-75, -150, 0);
   var avgFps = sum / fpsArray.length;
 
   var element = document.getElementById("info");
-  element.innerHTML = "Press space to start ripple, FPS: " + fps.toFixed(2);
+  element.innerHTML = "FPS: " + fps.toFixed(2);
   if (avgFps >= 24) {
     element.innerHTML += ", Your computer is fast enough";
   } else {
@@ -111,57 +135,30 @@ translate(-75, -150, 0);
   }
 }
 
-function keyTyped() {
-  if (key === ' ') {
-    kicked = true;
+function triggerRipple() {
+  var nowMillis = millis();
+  for (i = 0; i < grassXcount; i++) {
+    for (j = 0; j < grassYcount; j++) {
+      var distance = dist(0, 0, grassArray[i][j].x, grassArray[i][j].z);
+      distance = distance - halfRoadWidth - 6; //grass has gap of 12
+      grassArray[i][j].kick(nowMillis + distance * 1000 / 12); ////12in per sec
+    }
   }
 }
 
-function Grass(_x, _y, _z) {
-  this.x = _x;
-  this.y = _y;
-  this.z = _z;
-  this.kicked = false;
+function personMoving(step) {
+  personSpeed = step;
+}
 
-  this.ampScale = 0;
-  this.phase = TWO_PI * 9999;
+function toggleSide() {
+  personOnRight = !personOnRight;
+}
 
-  this.kick = function() {
-    this.kicked = true;
-
-  };
-
-
-  this.move = function(deltaPhase) {
-    var angle = this.ampScale * sin(this.phase);
-    var speed = cos(this.phase);
-    var canKick = false;
-    if (abs(angle) < .15 * 0.1) {
-      if (this.ampScale < .15 * 0.2) {
-        canKick = true;
-      } else if (speed > 0) {
-        canKick = true
-      }
+function myOrbitControl() {
+  if (this.mouseIsPressed) {
+    if (this.mouseX > 0 && this.mouseX < this.width && this.mouseY > 0 && this.mouseY < this.height) {
+      this.rotateY((this.mouseX - this.width / 2) / (this.width / 2));
+      this.rotateX((this.mouseY - this.height / 2) / (this.width / 2));
     }
-
-    if (this.kicked && canKick) {
-      this.phase = 0;
-      this.kicked = false;
-    } else {
-      this.phase += deltaPhase;
-      this.ampScale = 0.15 * (1 - this.phase / (6 * TWO_PI));
-      if (this.ampScale < 0) this.ampScale = 0;
-    }
-  };
-
-  this.display = function() {
-    push();
-    translate(this.x, this.y, this.z);
-    translate(0, 16, 0);
-    rotateX(this.ampScale * sin(this.phase));
-    box(3, 2, 3);
-    translate(0, -16, 0);
-    cylinder(1, 48, 6, 2); //r,height
-    pop();
   }
 };

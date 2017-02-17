@@ -1,16 +1,80 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>grass3d</title>
-    <script src="libraries/p5.min.js" type="text/javascript"></script>
 
-    <script src="sketch.js" type="text/javascript"></script>
+<head>
+  <meta charset="UTF-8">
+  <title>grass3d</title>
+  <script src="libraries/p5.min.js" type="text/javascript"></script>
+  <script src="grassClass.js" type="text/javascript"></script>
+  <script src="sketch.js" type="text/javascript"></script>
 
-    <style> body {padding: 0; margin: 0;} canvas {vertical-align: top;} </style>
-  </head>
-  <body>
-      <p id="info">Info</p>
-      <p style="color:#999999;">Made by Think Create on 2017-02-15</p>
-  </body>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    
+    canvas {
+      vertical-align: top;
+    }
+  </style>
+</head>
+
+<body>
+
+  <script>
+    //only put UI stuff here
+    function handleClick(myRadio) {
+      console.log(myRadio.value);
+      if (myRadio.value == 'ripple') {
+        document.getElementById('btnTriggerRipple').style.visibility = 'visible';
+        document.getElementById('btnPersonMU').style.visibility = 'hidden';
+        document.getElementById('btnPersonMD').style.visibility = 'hidden';
+        document.getElementById('btnPersonTS').style.visibility = 'hidden';
+        
+      } else if (myRadio.value == 'line') {
+        document.getElementById('btnTriggerRipple').style.visibility = 'hidden';
+        document.getElementById('btnPersonMU').style.visibility = 'visible';
+        document.getElementById('btnPersonMD').style.visibility = 'visible';
+        document.getElementById('btnPersonTS').style.visibility = 'visible';
+      }
+      currentMode = myRadio.value;
+
+
+    }
+  </script>
+
+
+  <p id="info">Info</p>
+  <p style="color:#999999;">Made by Think Create on 2017-02-17</p>
+
+  <table border="0">
+    <tr>
+      <td>
+        <div id="sketch-holder">
+          <!-- Our sketch will go here! -->
+        </div>
+      </td>
+      <td>
+        <form>
+          <input type="radio" name="moveMode" onclick="handleClick(this);" value="ripple" checked>Ripple
+          <br>
+          <input type="radio" name="moveMode" onclick="handleClick(this);" value="line">Line
+        </form>
+        <button type="button" id="btnTriggerRipple" onclick="triggerRipple()">
+          triggerRipple</button>
+
+        <button type="button" id="btnPersonMU" onmousedown="personMoving(2)" onmouseup="personMoving(0)" style="visibility:hidden;">
+          moveForward</button>
+        <button type="button" id="btnPersonMD" onmousedown="personMoving(-2)" onmouseup="personMoving(0)" style="visibility:hidden;">
+          moveBackward</button>
+        <button type="button" id="btnPersonTS" onclick="toggleSide()" style="visibility:hidden;">
+          toggleSide</button>
+      </td>
+    </tr>
+  </table>
+
+
+</body>
+
 </html>
