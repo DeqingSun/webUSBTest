@@ -43,7 +43,7 @@ function draw() {
   ambientMaterial('#43a047');
   noStroke();
 
-  //translate(-75, -150, 0);
+  translate(-40, -70, 0);
 
   myOrbitControl();
   scale(1.0 * 1);
@@ -94,7 +94,7 @@ function draw() {
               if ((personOnRight && (grassArray[i][j].z<0))||(!personOnRight && (grassArray[i][j].z>0))) {
                 var distance = dist(grassPostion, 0, grassArray[i][j].x, grassArray[i][j].z);
                 distance = distance - halfRoadWidth - 6; //grass has gap of 12
-                grassArray[i][j].kick(nowMillis + distance * 1000 / 36); //36in per sec
+                grassArray[i][j].kick(nowMillis + distance * 1000 / 48); //48 in per sec
               }
             }
           }
@@ -127,11 +127,11 @@ function draw() {
   var avgFps = sum / fpsArray.length;
 
   var element = document.getElementById("info");
-  element.innerHTML = "FPS: " + fps.toFixed(2);
+  element.innerHTML = "The frame rate is " + fps.toFixed(2) + " frames per second";
   if (avgFps >= 24) {
-    element.innerHTML += ", Your computer is fast enough";
+    element.innerHTML += ", means your computer is fast enough.";
   } else {
-    element.innerHTML += ", Your computer is slow";
+    element.innerHTML += ", means your computer is a bit slow, change a better one.";
   }
 }
 
@@ -141,7 +141,7 @@ function triggerRipple() {
     for (j = 0; j < grassYcount; j++) {
       var distance = dist(0, 0, grassArray[i][j].x, grassArray[i][j].z);
       distance = distance - halfRoadWidth - 6; //grass has gap of 12
-      grassArray[i][j].kick(nowMillis + distance * 1000 / 12); ////12in per sec
+      grassArray[i][j].kick(nowMillis + distance * 1000 / 24); ////24 in per sec
     }
   }
 }

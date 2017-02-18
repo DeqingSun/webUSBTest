@@ -11,7 +11,7 @@
   <style>
     body {
       padding: 0;
-      margin: 0;
+      margin: 10;
     }
     
     canvas {
@@ -46,8 +46,28 @@
 
 
   <p id="info">Info</p>
-  <p style="color:#999999;">Made by Think Create on 2017-02-17</p>
-
+    <form>
+        <p>Select a mode, then click the button:</p>
+        <input type="radio" name="moveMode" onclick="handleClick(this);" value="ripple" checked>Single Ripple Mode
+        <button type="button" id="btnTriggerRipple" onclick="triggerRipple()">
+            Trigger A Ripple
+        </button>
+        <p></p>
+        <input type="radio" name="moveMode" onclick="handleClick(this);" value="line">Walking Person Mode
+        <button type="button" id="btnPersonMU" onmousedown="personMoving(2)" onmouseup="personMoving(0)" style="visibility:hidden;">
+          Walk Forward
+        </button>
+    
+        <button type="button" id="btnPersonMD" onmousedown="personMoving(-2)" onmouseup="personMoving(0)" style="visibility:hidden;">
+          Walk Backward
+        </button>
+    
+        <button type="button" id="btnPersonTS" onclick="toggleSide()" style="visibility:hidden;">
+          Walk to The Other Side
+        </button>
+        <p style="color:#999999;"> Note: could add multiple people walking mode in the code, to simulate 4-8 people walking in the booth. We're also testing more visual effects, feel free to throw us ideas.</p>
+    </form>
+        
   <table border="0">
     <tr>
       <td>
@@ -56,23 +76,11 @@
         </div>
       </td>
       <td>
-        <form>
-          <input type="radio" name="moveMode" onclick="handleClick(this);" value="ripple" checked>Ripple
-          <br>
-          <input type="radio" name="moveMode" onclick="handleClick(this);" value="line">Line
-        </form>
-        <button type="button" id="btnTriggerRipple" onclick="triggerRipple()">
-          triggerRipple</button>
-
-        <button type="button" id="btnPersonMU" onmousedown="personMoving(2)" onmouseup="personMoving(0)" style="visibility:hidden;">
-          moveForward</button>
-        <button type="button" id="btnPersonMD" onmousedown="personMoving(-2)" onmouseup="personMoving(0)" style="visibility:hidden;">
-          moveBackward</button>
-        <button type="button" id="btnPersonTS" onclick="toggleSide()" style="visibility:hidden;">
-          toggleSide</button>
+        
       </td>
     </tr>
   </table>
+    <p style="color:#999999;">Made by Think Create on 2017-02-18</p>
 
 
 </body>
