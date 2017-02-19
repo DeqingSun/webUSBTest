@@ -43,8 +43,29 @@
         <button onclick="stopCode()" id="stopButton" disabled="disabled">Stop JavaScript</button>
         <button onclick="saveCode()" id="saveButton">Save on Cloud</button>
     </p>
-
-    <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
+    <table border="0">
+        <tr>
+            <td><div id="blocklyDiv" style="height: 600px; width: 800px;"></div></td>
+            <td>
+                value display 1:<br>
+                <input type="text" id="valueDisp1"><br>
+                value display 2:<br>
+                <input type="text" id="valueDisp2"><br>
+                value display 3:<br>
+                <input type="text" id="valueDisp3"><br>
+                value display 4:<br>
+                <input type="text" id="valueDisp4"><br>
+                value display 5:<br>
+                <input type="text" id="valueDisp5"><br>
+                value display 6:<br>
+                <input type="text" id="valueDisp6"><br>
+                value display 7:<br>
+                <input type="text" id="valueDisp7"><br>
+                value display 8:<br>
+                <input type="text" id="valueDisp8"><br>
+            </td>
+        </tr>
+    </table>
 
     <xml id="toolbox" style="display: none">
         <category name="Logic">
@@ -74,6 +95,7 @@
             <block type="text_length"></block>
             <block type="text_print"></block>
             <block type="text_log"></block>
+            <block type="text_dispValue"></block>
         </category>
         <category name="Variables" custom="VARIABLE"></category>
         <category name="Funkey Firmata">
@@ -276,6 +298,20 @@
                 this.setHelpUrl('http://www.example.com/');
             }
         };
+        
+        Blockly.Blocks['text_dispValue'] = {
+            init: function() {
+                this.appendValueInput("Text")
+                    .setCheck(null)
+                    .appendField("display in slot")
+                    .appendField(new Blockly.FieldDropdown([["1","1"], ["2","2"], ["3","3"], ["4","4"], ["5","5"], ["6","6"], ["7","7"], ["8","8"]]), "slot");
+                this.setPreviousStatement(true, null);
+                this.setNextStatement(true, null);
+                this.setColour(160);
+                this.setTooltip('');
+                this.setHelpUrl('');
+            }
+        };
 
         Blockly.JavaScript['readdigital'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
@@ -314,6 +350,14 @@
             var code = 'log(' + value_text + ');';
             return code;
         };
+        
+        Blockly.JavaScript['text_dispValue'] = function(block) {
+            var dropdown_slot = block.getFieldValue('slot');
+            var value_text = Blockly.JavaScript.valueToCode(block, 'Text', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = 'displayInSlot('+value_text+','+dropdown_slot+');';
+            return code;
+        };
 
         var workspace = Blockly.inject('blocklyDiv', {
             media: './media/'
@@ -347,6 +391,15 @@
             };
             interpreter.setProperty(scope, 'log'
                 , interpreter.createNativeFunction(wrapper));
+            
+            // Add an API function for the log() block.
+            var wrapper = function (text,slot) {
+                text = text ? text.toString() : '';
+                slot = slot ? slot.toString() : '';
+                return interpreter.createPrimitive(document.getElementById('valueDisp'+slot).value = text);
+            };
+            interpreter.setProperty(scope, 'displayInSlot'
+                , interpreter.createNativeFunction(wrapper)); 
 
             // Add an API function for the prompt() block.
             var wrapper = function (text) {
