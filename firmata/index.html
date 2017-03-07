@@ -2,27 +2,22 @@
 
 <head>
     <meta charset="utf-8">
-    <!-- Origin Trial Token, feature = WebUSB, origin = https://deqingsun.github.io, expires = 2017-03-06 -->
-    <meta http-equiv="origin-trial" data-feature="WebUSB" data-expires="2017-03-06" content="AkE3a9x8abu6Kzs2XpZE/L5gAlMc+nXUrjANLwyWntGL2OfJcbh/ilhkZzk3BZTceV5gg6tSqUw9VRd/UTITrgcAAABTeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQiIsImV4cGlyeSI6MTQ4ODg0NDc5OX0=">
+    <!-- Origin Trial Token, feature = WebUSB (For Chrome M57+), origin = https://deqingsun.github.io, expires = 2017-04-18 -->
+    <meta http-equiv="origin-trial" data-feature="WebUSB (For Chrome M57+)" data-expires="2017-04-18" content="Al+bW+kuTOkRY8Rc9IOeRfa/yNSc8ns+IeG8yrsWlmKy3XY5JwQggkMxtoLUbTBgXv02YXfIIvsOBzndD9ZzJAkAAABUeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQjIiLCJleHBpcnkiOjE0OTI1MjU3NDl9">
     <title>WebUSB test</title>
-
 </head>
 
 <body>
-
     <button style="position: absolute; bottom: 0" id="sendABC">send 'ABC' in 3 seconds</button>
     <button style="position: absolute; bottom: 20" id="p10high">Set pin 10 to HIGH</button>
     <button style="position: absolute; bottom: 40" id="p10low">Set pin 10 to LOW</button>
     <button style="position: absolute; bottom: 60" id="p10input">Read pin 10</button>
     <button style="position: absolute; bottom: 80" id="sendLeftArrow">send Left arrow in 3 seconds</button>
-
     <button style="position: absolute; left: 160; bottom: 80" id="readA0">Read A0</button>
     <button style="position: absolute; left: 160; bottom: 60" id="readA6">Read A6</button>
     <button style="position: absolute; left: 160; bottom: 40" id="readPollA6">Read A6 auto</button>
-    <button style="position: absolute; left: 160; bottom: 0" id="connect">Connect</button>
-    <a href="./blockly/">blockly</a>
-    <div id="buffer">
-    </div>
+    <button style="position: absolute; left: 160; bottom: 0" id="connect">Connect</button> <a href="./blockly/">blockly</a>
+    <div id="buffer"> </div>
     <script src="serial.js"></script>
     <script src="modifiedFirmata.js"></script>
     <script src="main.js"></script>

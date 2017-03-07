@@ -1,11 +1,9 @@
 <HTML>
 
 <HEAD>
-    <!-- Origin Trial Token, feature = WebUSB, origin = https://deqingsun.github.io, expires = 2017-03-06 -->
-    <meta http-equiv="origin-trial" data-feature="WebUSB" data-expires="2017-03-06" content="AkE3a9x8abu6Kzs2XpZE/L5gAlMc+nXUrjANLwyWntGL2OfJcbh/ilhkZzk3BZTceV5gg6tSqUw9VRd/UTITrgcAAABTeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQiIsImV4cGlyeSI6MTQ4ODg0NDc5OX0=">
-    <TITLE>
-        Remap FunkeyFunkey
-    </TITLE>
+    <!-- Origin Trial Token, feature = WebUSB (For Chrome M57+), origin = https://deqingsun.github.io, expires = 2017-04-18 -->
+    <meta http-equiv="origin-trial" data-feature="WebUSB (For Chrome M57+)" data-expires="2017-04-18" content="Al+bW+kuTOkRY8Rc9IOeRfa/yNSc8ns+IeG8yrsWlmKy3XY5JwQggkMxtoLUbTBgXv02YXfIIvsOBzndD9ZzJAkAAABUeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQjIiLCJleHBpcnkiOjE0OTI1MjU3NDl9">
+    <TITLE> Remap FunkeyFunkey </TITLE>
     <script src="serial.js"></script>
 </HEAD>
 
@@ -20,8 +18,6 @@
         <button id="loadDefault">Load Default</button>
     </p>
     <div id="keySelects"></div>
-
-
     <script>
         var keycode = {
             'MOUSE_MOVE_UP': -1
@@ -82,96 +78,94 @@
             , 'KEY_8': 0x38
             , 'KEY_9': 0x39
         };
-
         var defaultKeyMap = [
             'KEY_UP_ARROW'
 
 
 
-            
+
             , 'KEY_DOWN_ARROW'
 
 
 
-            
+
             , 'KEY_LEFT_ARROW'
 
 
 
-            
+
             , 'KEY_RIGHT_ARROW'
 
 
 
-            
+
             , 'KEY_SPACE'
 
 
 
-            
+
             , 'MOUSE_LEFT'
 
 
 
-            
+
             , 'KEY_w'
 
 
 
-            
+
             , 'KEY_a'
 
 
 
-            
+
             , 'KEY_s'
 
 
 
-            
+
             , 'KEY_d'
 
 
 
-            
+
             , 'KEY_f'
 
 
 
-            
+
             , 'KEY_g'
 
 
 
-            
+
             , 'KEY_h'
 
 
 
-            
+
             , 'KEY_i'
 
 
 
-            
+
             , 'KEY_j'
 
 
 
-            
+
             , 'KEY_k'
 
 
 
-            
+
             , 'KEY_l'
 
 
 
-            
+
             , 'KEY_m'
         ];
-
         var keySelects = document.getElementById("keySelects");
         var totalKeys = 18;
         for (var i = 0; i < totalKeys; i++) {
@@ -191,7 +185,6 @@
             divElement.appendChild(oneKeyOption);
             keySelects.appendChild(divElement);
         }
-
         document.getElementById("program").addEventListener("click", function () {
             var msg = "";
             for (var i = 0; i < totalKeys; i++) {
@@ -206,7 +199,6 @@
             }
             validPort.send(str2ab(msg));
         });
-
         var analyzeCommand = function (str) {
             if (str.charAt(0) == 'r') {
                 var channel = parseInt(str.substring(1, 3), 16);
@@ -223,7 +215,6 @@
                 }
             }
         }
-
         var loadDefault = function () {
             for (var i = 0; i < totalKeys; i++) {
                 var selectElement = document.getElementById("oneKeySelect" + i);
@@ -232,20 +223,16 @@
         }
         document.getElementById("loadDefault").addEventListener("click", loadDefault);
         loadDefault();
-
         var log = function (str) {
             document.getElementById("log").innerHTML = str;
         }
-
         var validPort = null;
-
         /* Interprets an ArrayBuffer as UTF-8 encoded string data. */
         var ab2str = function (buf) {
             var bufView = new Uint8Array(buf);
             var encodedString = String.fromCharCode.apply(null, bufView);
             return decodeURIComponent(escape(encodedString));
         };
-
         /* Converts a string to UTF-8 encoding in a Uint8Array; returns the array buffer. */
         var str2ab = function (str) {
             var encodedString = unescape(encodeURIComponent(str));
@@ -255,10 +242,8 @@
             }
             return bytes.buffer;
         };
-
         ////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////
-
         function connect() {
             log('Connecting to ' + validPort.device_.productName + '...');
             validPort.connect().then(() => {
@@ -282,12 +267,12 @@
                 validPort.send(str2ab("R\n"));
             });
         };
-
         document.getElementById('connect').addEventListener('click', function () {
             if (validPort) {
                 validPort.disconnect();
                 document.getElementById('connect').textContent = 'Connect';
-            } else {
+            }
+            else {
                 serial.requestPort().then(selectedPort => {
                     validPort = selectedPort;
                     connect();
@@ -296,17 +281,16 @@
                 });
             }
         });
-
         serial.getPorts().then(ports => {
             if (ports.length == 0) {
                 log('No devices found.');
-            } else {
+            }
+            else {
                 validPort = ports[0];
                 connect();
             }
         });
     </script>
-
 </BODY>
 
 </HTML>
