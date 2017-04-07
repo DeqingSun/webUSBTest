@@ -9,9 +9,12 @@ function Grass(_x, _y, _z) {
   this.phase = TWO_PI * 9999;
 
   this.kick = function(_kickTime) {
-    this.kickTime.push(_kickTime);
+    var i;
+    for (i=0;i<this.kickTime.length;i++){
+      if (this.kickTime[i]>=_kickTime) break;
+    }
+    this.kickTime.splice(i,0,_kickTime);
   };
-
 
   this.move = function(deltaPhase, currentTime) {
     while (this.kickTime.length > 0) {

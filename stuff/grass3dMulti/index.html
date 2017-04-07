@@ -28,12 +28,20 @@
       console.log(myRadio.value);
       if (myRadio.value == 'ripple') {
         document.getElementById('btnTriggerRipple').style.visibility = 'visible';
+        document.getElementById('btnTriggerRipple2').style.visibility = 'hidden';
+        document.getElementById('btnPersonMU').style.visibility = 'hidden';
+        document.getElementById('btnPersonMD').style.visibility = 'hidden';
+        document.getElementById('btnPersonTS').style.visibility = 'hidden';
+      } else if (myRadio.value == 'ripple2') {
+        document.getElementById('btnTriggerRipple').style.visibility = 'hidden';
+        document.getElementById('btnTriggerRipple2').style.visibility = 'visible';
         document.getElementById('btnPersonMU').style.visibility = 'hidden';
         document.getElementById('btnPersonMD').style.visibility = 'hidden';
         document.getElementById('btnPersonTS').style.visibility = 'hidden';
         
       } else if (myRadio.value == 'line') {
         document.getElementById('btnTriggerRipple').style.visibility = 'hidden';
+        document.getElementById('btnTriggerRipple2').style.visibility = 'hidden';
         document.getElementById('btnPersonMU').style.visibility = 'visible';
         document.getElementById('btnPersonMD').style.visibility = 'visible';
         document.getElementById('btnPersonTS').style.visibility = 'visible';
@@ -49,7 +57,12 @@
     <form>
         <p>Select a mode, then click the button:</p>
         <input type="radio" name="moveMode" onclick="handleClick(this);" value="ripple" checked>Single Ripple Mode
-        <button type="button" id="btnTriggerRipple" onclick="triggerRipple()">
+        <button type="button" id="btnTriggerRipple" onclick="triggerRipple(1)">
+            Trigger A Ripple
+        </button>
+        <p></p>
+        <input type="radio" name="moveMode" onclick="handleClick(this);" value="ripple2">2 Ripple Mode
+        <button type="button" id="btnTriggerRipple2" onclick="triggerRipple(2)" style="visibility:hidden;">
             Trigger A Ripple
         </button>
         <p></p>
