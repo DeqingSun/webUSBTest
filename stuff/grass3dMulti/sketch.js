@@ -148,14 +148,14 @@ function triggerRipple(rippleCount) {
   }else if (rippleCount==2){
     for (i = 0; i < grassXcount; i++) {
       for (j = 0; j < grassYcount; j++) {
-        var distance = dist(180, 0, grassArray[i][j].x, grassArray[i][j].z);
+        var distance = dist(90, 0, grassArray[i][j].x, grassArray[i][j].z);
         distance = distance - halfRoadWidth - 6; //grass has gap of 12
         grassArray[i][j].kick(nowMillis + distance * 1000 / 24); ////24 in per sec
       }
     }
     for (i = 0; i < grassXcount; i++) {
       for (j = 0; j < grassYcount; j++) {
-        var distance = dist(-180, 0, grassArray[i][j].x, grassArray[i][j].z);
+        var distance = dist(-90, 0, grassArray[i][j].x, grassArray[i][j].z);
         distance = distance - halfRoadWidth - 6; //grass has gap of 12
         grassArray[i][j].kick(nowMillis + distance * 1000 / 24); ////24 in per sec
       }
