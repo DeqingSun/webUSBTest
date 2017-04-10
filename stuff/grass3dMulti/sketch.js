@@ -51,7 +51,7 @@ function draw() {
   rotateY(-PI / 4 - PI / 8);
 
   var nowMillis = millis();
-  var deltaPhase = TWO_PI * (nowMillis - lastMillis) / 2500;
+  var deltaPhase = TWO_PI * (nowMillis - lastMillis) / 1200;
 
 
 
@@ -148,14 +148,14 @@ function triggerRipple(rippleCount) {
   }else if (rippleCount==2){
     for (i = 0; i < grassXcount; i++) {
       for (j = 0; j < grassYcount; j++) {
-        var distance = dist(90, 0, grassArray[i][j].x, grassArray[i][j].z);
+        var distance = dist(150, 0, grassArray[i][j].x, grassArray[i][j].z);
         distance = distance - halfRoadWidth - 6; //grass has gap of 12
         grassArray[i][j].kick(nowMillis + distance * 1000 / 24); ////24 in per sec
       }
     }
     for (i = 0; i < grassXcount; i++) {
       for (j = 0; j < grassYcount; j++) {
-        var distance = dist(-90, 0, grassArray[i][j].x, grassArray[i][j].z);
+        var distance = dist(-150, 0, grassArray[i][j].x, grassArray[i][j].z);
         distance = distance - halfRoadWidth - 6; //grass has gap of 12
         grassArray[i][j].kick(nowMillis + distance * 1000 / 24); ////24 in per sec
       }
