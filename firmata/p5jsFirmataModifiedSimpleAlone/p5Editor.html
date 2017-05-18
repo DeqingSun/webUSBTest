@@ -10,8 +10,11 @@
 
 <body>
 
+    
+    <textarea id="code" style="height: 400px; width: 300px;"></textarea>
+    <button onclick="runCode()" id="runButton">Run code</button>
 
-    <iframe id="testFrame">
+    <iframe id="testFrame" style="height: 400px; width: 300px;">
         <p>Your browser does not support iframes.</p>
     </iframe>
 
@@ -26,9 +29,12 @@
         }
 
         //
-        //var html = this.boxHTML.val();
-        //var css = this.boxCSS.val();
+        var html = '';
+        var css = '';
         //var js = this.boxJS.val();
+        
+        var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script>'
+        var webusbFirmataLib = '<script src="libraries\/p5.webusbFirmata.js" type="text\/javascript"><\/script>'
 
         //var jQuery = '<script type="text/javascript" src="' + this.jQueryVersion.val() + '"><\/script>';
         //var jQueryUI = '<script type="text/javascript" src="' + this.jQueryUIVersion.val() + '"><\/script>';
@@ -38,7 +44,7 @@
 
         var js = "console.log('aaa');console.log(navigator.usb);console.log(navigator);";
 
-        var result = '<html><head>' + metaStr + '' + '<style>' + '' + '</style></head><body>' + '' + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
+        var result = '<html><head>' + metaStr + p5lib + webusbFirmataLib + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
 
 
         //var result = "<script>console.log('aaa');console.log(navigator.usb);console.log(navigator);<\/script>";
