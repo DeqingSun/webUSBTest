@@ -11,12 +11,13 @@
 <body>
 
 
-    <textarea id="code" style="height: 400px; width: 300px;"></textarea>
+    <textarea id="code" style="height: 400px; width: 600px;"></textarea>
     <button onclick="runCode()" id="runButton">Run code</button>
-
-    <iframe id="testFrame" style="height: 400px; width: 300px;">
-        <p>Your browser does not support iframes.</p>
-    </iframe>
+    <div id="iframeContainer">
+        <iframe id="testFrame" style="height: 400px; width: 600px;">
+            <p>Your browser does not support iframes.</p>
+        </iframe>
+    </div>
 
     <script>
         function runCode() {
@@ -39,10 +40,20 @@
             var result = '<html><head>' + metaStr + p5lib + webusbFirmataLib + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
 
             var iframe = document.getElementById('testFrame');
+            iframe.style.display = 'none';
+            
+            var existIframe = document.getElementById('testFrameDup');
+            if (existIframe) document.getElementById('iframeContainer').removeChild(existIframe);
 
-            if (iframe.contentDocument) doc = iframe.contentDocument;
-            else if (iframe.contentWindow) doc = iframe.contentWindow.document;
-            else doc = iframe.document;
+            var iframeDup = iframe.cloneNode(true);
+            iframeDup.style.display = 'block';
+            iframeDup.id="testFrameDup"
+            document.getElementById('iframeContainer').appendChild(iframeDup);
+
+            if (iframeDup.contentDocument) doc = iframeDup.contentDocument;
+            else if (iframeDup.contentWindow) doc = iframeDup.contentWindow.document;
+            else doc = iframeDup.document;
+
 
             doc.open();
             doc.writeln(result);
