@@ -48,6 +48,14 @@
             doc.writeln(result);
             doc.close();
         }
+
+
+        var client = new XMLHttpRequest();
+        client.open('GET', 'sketch.js');
+        client.onreadystatechange = function () {
+            document.getElementById('code').value = client.responseText;
+        }
+        client.send();
     </script>
 </body>
 

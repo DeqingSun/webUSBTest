@@ -1,7 +1,7 @@
-var makeSense;
 var lastLEDTime = 0;
 var io1circleColor;
 var sliderValue = 0;
+var webusbFirmata;
 
 function setup() {
     createCanvas(640, 360);
