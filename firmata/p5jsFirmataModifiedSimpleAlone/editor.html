@@ -10,7 +10,7 @@
 
 <body>
 
-    
+
     <textarea id="code" style="height: 400px; width: 300px;"></textarea>
     <button onclick="runCode()" id="runButton">Run code</button>
 
@@ -19,46 +19,35 @@
     </iframe>
 
     <script>
-        var metas = document.getElementsByTagName('meta');
-        var metaStr = '<meta charset="utf-8">\n';
-        var test;
-        for (var i = 0; i < metas.length; i++) {
-            if (metas[i].httpEquiv=='origin-trial'){
-                metaStr=metaStr+'<meta http-equiv="origin-trial" data-feature="'+metas[i].dataset.feature+'" data-expires="'+metas[i].dataset.expires+'" content="'+metas[i].content+'">';
+        function runCode() {
+            var metas = document.getElementsByTagName('meta');
+            var metaStr = '<meta charset="utf-8">\n';
+            var test;
+            for (var i = 0; i < metas.length; i++) {
+                if (metas[i].httpEquiv == 'origin-trial') {
+                    metaStr = metaStr + '<meta http-equiv="origin-trial" data-feature="' + metas[i].dataset.feature + '" data-expires="' + metas[i].dataset.expires + '" content="' + metas[i].content + '">';
+                }
             }
+
+            var html = '';
+            var css = '';
+            var js = document.getElementById('code').value;
+
+            var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script>'
+            var webusbFirmataLib = '<script src="libraries\/p5.webusbFirmata.js" type="text\/javascript"><\/script>'
+
+            var result = '<html><head>' + metaStr + p5lib + webusbFirmataLib + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
+
+            var iframe = document.getElementById('testFrame');
+
+            if (iframe.contentDocument) doc = iframe.contentDocument;
+            else if (iframe.contentWindow) doc = iframe.contentWindow.document;
+            else doc = iframe.document;
+
+            doc.open();
+            doc.writeln(result);
+            doc.close();
         }
-
-        //
-        var html = '';
-        var css = '';
-        //var js = this.boxJS.val();
-        
-        var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script>'
-        var webusbFirmataLib = '<script src="libraries\/p5.webusbFirmata.js" type="text\/javascript"><\/script>'
-        p5lib=webusbFirmataLib='';
-        
-
-        //var jQuery = '<script type="text/javascript" src="' + this.jQueryVersion.val() + '"><\/script>';
-        //var jQueryUI = '<script type="text/javascript" src="' + this.jQueryUIVersion.val() + '"><\/script>';
-        //var jQueryUITheme = '<link rel="stylesheet" type="text/css" href="' + this.jQueryUITheme.val() + '"\/>'
-
-        //var result = '<html><head>' + jQuery + jQueryUITheme + jQueryUI + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
-
-        var js = "console.log('aaa');console.log(navigator.usb);console.log(navigator);";
-
-        var result = '<html><head>' + metaStr + p5lib + webusbFirmataLib + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
-
-
-        //var result = "<script>console.log('aaa');console.log(navigator.usb);console.log(navigator);<\/script>";
-        var iframe = document.getElementById('testFrame');
-
-        if (iframe.contentDocument) doc = iframe.contentDocument;
-        else if (iframe.contentWindow) doc = iframe.contentWindow.document;
-        else doc = iframe.document;
-
-        doc.open();
-        doc.writeln(result);
-        doc.close();
     </script>
 </body>
 
