@@ -59,11 +59,13 @@
             doc.open();
             doc.writeln(result);
             doc.close();
+            
+            webusbFirmata.connect();
         }
 
 
         var client = new XMLHttpRequest();
-        client.open('GET', 'sketch.js');
+        client.open('GET', 'sketch_iframe.js');
         client.onreadystatechange = function () {
             document.getElementById('code').value = client.responseText;
         }
