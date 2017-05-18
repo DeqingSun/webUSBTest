@@ -16,7 +16,32 @@
     </iframe>
 
     <script>
-        var result = "<script>console.log('aaa');console.log(navigator.usb);console.log(navigator);<\/script>";
+        var metas = document.getElementsByTagName('meta');
+        var metaStr = '<meta charset="utf-8">\n';
+        var test;
+        for (var i = 0; i < metas.length; i++) {
+            if (metas[i].httpEquiv=='origin-trial'){
+                metaStr=metaStr+'<meta http-equiv="origin-trial" data-feature="'+metas[i].dataset.feature+'" data-expires="'+metas[i].dataset.expires+'" content="'+metas[i].content+'">';
+            }
+        }
+
+        //
+        //var html = this.boxHTML.val();
+        //var css = this.boxCSS.val();
+        //var js = this.boxJS.val();
+
+        //var jQuery = '<script type="text/javascript" src="' + this.jQueryVersion.val() + '"><\/script>';
+        //var jQueryUI = '<script type="text/javascript" src="' + this.jQueryUIVersion.val() + '"><\/script>';
+        //var jQueryUITheme = '<link rel="stylesheet" type="text/css" href="' + this.jQueryUITheme.val() + '"\/>'
+
+        //var result = '<html><head>' + jQuery + jQueryUITheme + jQueryUI + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
+
+        var js = "console.log('aaa');console.log(navigator.usb);console.log(navigator);";
+
+        var result = '<html><head>' + metaStr + '' + '<style>' + '' + '</style></head><body>' + '' + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';
+
+
+        //var result = "<script>console.log('aaa');console.log(navigator.usb);console.log(navigator);<\/script>";
         var iframe = document.getElementById('testFrame');
 
         if (iframe.contentDocument) doc = iframe.contentDocument;
