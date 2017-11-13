@@ -8,9 +8,22 @@
 </head>
 
 <body>
-    Data can be downloaded from https://esa.un.org/unpd/wpp/<br>
-    <button style="" id="updateTime">updateTime</button>
+    <h2>Follow instructions on this page to connect the counter, update population data, and update time.</h2>
+    <h4>Step 0. Plug the Counter</h4>
+    <p>Plug the counter to a computer with a MICRO USB cable.</p>
+    <hr>
+    
+    <h4>Step 1. Connect the Counter</h4>
+    <p>Use Chrome (no other browser) to open this page. <br>
+        Click "Connect" button below. It will pop up a new window, choose "Trinket M0" and click "Connect".</p>
     <button style="" id="connect">Connect</button> 
+    <hr>
+    
+    <h4>Function 1. Update Population Data</h4>
+    <p>By default, the data below is from UN population data.<br>
+    If you want to update data, get newest data from UN (https://esa.un.org/unpd/wpp/, follow steps on the PDF Manual), and copy paste data into textboxes below.<br>
+    Click "Send Data" when finish editing. All population data will be sent in 5~10 seconds. Wait to see the number* changes on the counter screen.</p>
+    
     <br>
     2017 <input type="text" id="pop2017" value="7550262101">
     2018 <input type="text" id="pop2018" value="7632819325">
@@ -32,8 +45,18 @@
     2034 <input type="text" id="pop2034" value="8826315616">
     2035 <input type="text" id="pop2035" value="8892701940">
     2036 <input type="text" id="pop2036" value="8958126691"><br>
+    <br>
     <button style="" id="sendData">Send Data</button> 
+    <br><hr><br>
+    
+    <h4>Function 2. Update Counter's Date Time</h4>
+    <p>Click "updateTime" to sync clock inside counter with your computer's time.Wait to see the date time changes on the counter screen. It will go back to population data after 10 sec.</p>
+    
+    <button style="" id="updateTime">updateTime</button>
+    <br><hr>
     <div id="buffer"> </div>
+    <hr><br>
+    <p>*The number displayed on the screen is calculated by current date time and population data of this year and next year. For example, if set 2018 putuplation to 1000, 2019 population to 2000. If current date time is 2017-06-30-24:00 (in the middle of the year), the population number displayed will be 1500 ( (2000-1000)/2 +1000 = 1500 ). If currentdate date time is 2017-09-30-24:00 (3/4 of the year), the number will be 1750 ( (2000-1000)/4*3+1000 = 1750 ). </p>
     <script src="serial.js"></script>
     <script src="counterBoard.js"></script>
     <script src="main.js"></script>
