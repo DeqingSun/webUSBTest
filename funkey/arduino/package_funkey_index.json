@@ -1,0 +1,34 @@
+{
+  "packages": [
+    {
+      "name": "Funkey Boards",
+      "maintainer": "Deqing Sun",
+      "websiteURL": "http://www.makesense.co",
+      "help": {
+        "online": "http://www.makesense.co"
+      },
+      "platforms": [
+        {
+          "name": "Architectronics Funkey",
+          "architecture": "avr",
+          "version": "1.0.0",
+          "category": "Contributed",
+          "help": {
+            "online": "http://www.makesense.co"
+          },
+          "url": "https://deqingsun.github.io/webUSBTest/funkey/arduino/funkey-1.0.0.zip",
+          "archiveFileName": "funkey-1.0.0.zip",
+          "checksum": "SHA-256:0d2b527d0ea278cadca303e81d2e76497f70eb32bcebae2b67a3a6a81e338ed9",
+          "size": "4524",
+          "boards": [
+            {"name": "Architectronics Funkey Funkey"}
+          ],
+          "toolsDependencies": [
+
+          ]
+        }
+      ],
+      "tools":[]
+    }
+  ]
+}
