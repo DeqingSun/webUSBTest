@@ -44,7 +44,10 @@
             <td>
                 <div id="blocklyDiv" style="height: 600px; width: 800px;"></div>
             </td>
-            <td> value display 1:
+            <td> value display 0:
+                <br>
+                <input type="text" id="valueDisp0">
+                <br> value display 1:
                 <br>
                 <input type="text" id="valueDisp1">
                 <br> value display 2:
@@ -59,16 +62,8 @@
                 <br> value display 5:
                 <br>
                 <input type="text" id="valueDisp5">
-                <br> value display 6:
                 <br>
-                <input type="text" id="valueDisp6">
-                <br> value display 7:
-                <br>
-                <input type="text" id="valueDisp7">
-                <br> value display 8:
-                <br>
-                <input type="text" id="valueDisp8">
-                <br> </td>
+                </td>
         </tr>
     </table>
     <xml id="toolbox" style="display: none">
@@ -112,126 +107,222 @@
     <!-- var xml = Blockly.Xml.workspaceToDom(workspace);var xml_text = Blockly.Xml.domToPrettyText(xml);console.log(xml_text.replace(/\s+id=".*?"/g, "")); -->
     <!-- regex to match id -->
     <xml id="startBlocks" style="display: none">
-        <block type="controls_repeat_ext">
-            <value name="TIMES">
-                <block type="math_number">
-                    <field name="NUM">999</field>
-                </block>
+        
+      <block type="controls_repeat_ext" x="0" y="0">
+        <value name="TIMES">
+          <block type="math_number">
+            <field name="NUM">999</field>
+          </block>
+        </value>
+        <statement name="DO">
+          <block type="delay">
+            <value name="millis">
+              <block type="math_number">
+                <field name="NUM">10</field>
+              </block>
             </value>
-            <statement name="DO">
-                <block type="delay">
-                    <value name="millis">
-                        <block type="math_number">
-                            <field name="NUM">10</field>
-                        </block>
+            <next>
+              <block type="text_dispValue">
+                <field name="slot">0</field>
+                <value name="Text">
+                  <block type="readanalog">
+                    <value name="CHANNEL">
+                      <block type="math_number">
+                        <field name="NUM">0</field>
+                      </block>
                     </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_if">
+                    <mutation else="1"></mutation>
+                    <value name="IF0">
+                      <block type="logic_compare">
+                        <field name="OP">GT</field>
+                        <value name="A">
+                          <block type="readanalog">
+                            <value name="CHANNEL">
+                              <block type="math_number">
+                                <field name="NUM">0</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="math_number">
+                            <field name="NUM">512</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="writedigital">
+                        <value name="CHANNEL">
+                          <block type="math_number">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <value name="VALUE">
+                          <block type="logic_boolean">
+                            <field name="BOOL">TRUE</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                    <statement name="ELSE">
+                      <block type="writedigital">
+                        <value name="CHANNEL">
+                          <block type="math_number">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <value name="VALUE">
+                          <block type="logic_boolean">
+                            <field name="BOOL">FALSE</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
                     <next>
-                        <block type="controls_if">
+                      <block type="text_dispValue">
+                        <field name="slot">1</field>
+                        <value name="Text">
+                          <block type="readanalog">
+                            <value name="CHANNEL">
+                              <block type="math_number">
+                                <field name="NUM">1</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="controls_if">
                             <mutation else="1"></mutation>
                             <value name="IF0">
-                                <block type="logic_compare">
-                                    <field name="OP">EQ</field>
-                                    <value name="A">
-                                        <block type="readdigital">
-                                            <value name="CHANNEL">
-                                                <block type="math_number">
-                                                    <field name="NUM">7</field>
-                                                </block>
-                                            </value>
-                                        </block>
+                              <block type="logic_compare">
+                                <field name="OP">GT</field>
+                                <value name="A">
+                                  <block type="readanalog">
+                                    <value name="CHANNEL">
+                                      <block type="math_number">
+                                        <field name="NUM">1</field>
+                                      </block>
                                     </value>
-                                    <value name="B">
-                                        <block type="logic_boolean">
-                                            <field name="BOOL">TRUE</field>
-                                        </block>
-                                    </value>
-                                </block>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <block type="math_number">
+                                    <field name="NUM">512</field>
+                                  </block>
+                                </value>
+                              </block>
                             </value>
                             <statement name="DO0">
-                                <block type="writedigital">
-                                    <value name="CHANNEL">
-                                        <block type="math_number">
-                                            <field name="NUM">10</field>
-                                        </block>
-                                    </value>
-                                    <value name="VALUE">
-                                        <block type="logic_boolean">
-                                            <field name="BOOL">TRUE</field>
-                                        </block>
-                                    </value>
-                                </block>
+                              <block type="writedigital">
+                                <value name="CHANNEL">
+                                  <block type="math_number">
+                                    <field name="NUM">1</field>
+                                  </block>
+                                </value>
+                                <value name="VALUE">
+                                  <block type="logic_boolean">
+                                    <field name="BOOL">TRUE</field>
+                                  </block>
+                                </value>
+                              </block>
                             </statement>
                             <statement name="ELSE">
-                                <block type="writedigital">
-                                    <value name="CHANNEL">
-                                        <block type="math_number">
-                                            <field name="NUM">10</field>
-                                        </block>
-                                    </value>
-                                    <value name="VALUE">
-                                        <block type="logic_boolean">
-                                            <field name="BOOL">FALSE</field>
-                                        </block>
-                                    </value>
-                                </block>
+                              <block type="writedigital">
+                                <value name="CHANNEL">
+                                  <block type="math_number">
+                                    <field name="NUM">1</field>
+                                  </block>
+                                </value>
+                                <value name="VALUE">
+                                  <block type="logic_boolean">
+                                    <field name="BOOL">FALSE</field>
+                                  </block>
+                                </value>
+                              </block>
                             </statement>
                             <next>
-                                <block type="controls_if">
+                              <block type="text_dispValue">
+                                <field name="slot">2</field>
+                                <value name="Text">
+                                  <block type="readanalog">
+                                    <value name="CHANNEL">
+                                      <block type="math_number">
+                                        <field name="NUM">2</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="controls_if">
                                     <mutation else="1"></mutation>
                                     <value name="IF0">
-                                        <block type="logic_compare">
-                                            <field name="OP">GT</field>
-                                            <value name="A">
-                                                <block type="readanalog">
-                                                    <value name="CHANNEL">
-                                                        <block type="math_number">
-                                                            <field name="NUM">0</field>
-                                                        </block>
-                                                    </value>
-                                                </block>
+                                      <block type="logic_compare">
+                                        <field name="OP">GT</field>
+                                        <value name="A">
+                                          <block type="readanalog">
+                                            <value name="CHANNEL">
+                                              <block type="math_number">
+                                                <field name="NUM">2</field>
+                                              </block>
                                             </value>
-                                            <value name="B">
-                                                <block type="math_number">
-                                                    <field name="NUM">512</field>
-                                                </block>
-                                            </value>
-                                        </block>
+                                          </block>
+                                        </value>
+                                        <value name="B">
+                                          <block type="math_number">
+                                            <field name="NUM">512</field>
+                                          </block>
+                                        </value>
+                                      </block>
                                     </value>
                                     <statement name="DO0">
-                                        <block type="writedigital">
-                                            <value name="CHANNEL">
-                                                <block type="math_number">
-                                                    <field name="NUM">9</field>
-                                                </block>
-                                            </value>
-                                            <value name="VALUE">
-                                                <block type="logic_boolean">
-                                                    <field name="BOOL">TRUE</field>
-                                                </block>
-                                            </value>
-                                        </block>
+                                      <block type="writedigital">
+                                        <value name="CHANNEL">
+                                          <block type="math_number">
+                                            <field name="NUM">2</field>
+                                          </block>
+                                        </value>
+                                        <value name="VALUE">
+                                          <block type="logic_boolean">
+                                            <field name="BOOL">TRUE</field>
+                                          </block>
+                                        </value>
+                                      </block>
                                     </statement>
                                     <statement name="ELSE">
-                                        <block type="writedigital">
-                                            <value name="CHANNEL">
-                                                <block type="math_number">
-                                                    <field name="NUM">9</field>
-                                                </block>
-                                            </value>
-                                            <value name="VALUE">
-                                                <block type="logic_boolean">
-                                                    <field name="BOOL">FALSE</field>
-                                                </block>
-                                            </value>
-                                        </block>
+                                      <block type="writedigital">
+                                        <value name="CHANNEL">
+                                          <block type="math_number">
+                                            <field name="NUM">2</field>
+                                          </block>
+                                        </value>
+                                        <value name="VALUE">
+                                          <block type="logic_boolean">
+                                            <field name="BOOL">FALSE</field>
+                                          </block>
+                                        </value>
+                                      </block>
                                     </statement>
-                                </block>
+                                  </block>
+                                </next>
+                              </block>
                             </next>
-                        </block>
+                          </block>
+                        </next>
+                      </block>
                     </next>
-                </block>
-            </statement>
-        </block>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>        
+         
     </xml>
     <div id="buffer"></div>
     <script>
@@ -286,7 +377,7 @@
         };
         Blockly.Blocks['text_dispValue'] = {
             init: function () {
-                this.appendValueInput("Text").setCheck(null).appendField("display in slot").appendField(new Blockly.FieldDropdown([["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["7", "7"], ["8", "8"]]), "slot");
+                this.appendValueInput("Text").setCheck(null).appendField("display in slot").appendField(new Blockly.FieldDropdown([["0", "0"], ["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"]]), "slot");
                 this.setPreviousStatement(true, null);
                 this.setNextStatement(true, null);
                 this.setColour(160);
