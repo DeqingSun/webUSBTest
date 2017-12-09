@@ -388,7 +388,7 @@
             document.getElementById('stopButton').disabled = '';
             document.getElementById('runButton').disabled = 'disabled';
             document.getElementById('runFullSpeedButton').disabled = 'disabled';
-            var code = document.getElementById('code').value;
+            var code = editor.getValue();
             myInterpreter = new Interpreter(code, initApi);
             tryToStart();
             //console.log(myInterpreter.run());
