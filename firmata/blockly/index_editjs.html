@@ -406,14 +406,14 @@
         Blockly.JavaScript['readdigital'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
-            var code = 'modifiedFirmata_simpleReadDigital(' + value_channel + ')';
+            var code = 'digitalRead(' + value_channel + ')';
             // TODO: Change ORDER_NONE to the correct strength.
             return [code, Blockly.JavaScript.ORDER_NONE];
         };
         Blockly.JavaScript['readanalog'] = function (block) {
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
-            var code = 'modifiedFirmata_simpleReadAnalog(' + value_channel + ')';
+            var code = 'analogRead(' + value_channel + ')';
             // TODO: Change ORDER_NONE to the correct strength.
             return [code, Blockly.JavaScript.ORDER_NONE];
         };
@@ -421,7 +421,7 @@
             var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
             var value_value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
-            var code = 'modifiedFirmata_simpleWriteDigital(' + value_channel + ',' + value_value + ');\n';
+            var code = 'digitalWrite(' + value_channel + ',' + value_value + ');\n';
             return code;
         };
         Blockly.JavaScript['delay'] = function (block) {
@@ -489,20 +489,20 @@
                 channel = channel ? channel.toString() : '';
                 return interpreter.createPrimitive(modifiedFirmata.simpleReadDigital(channel));
             };
-            interpreter.setProperty(scope, 'modifiedFirmata_simpleReadDigital', interpreter.createNativeFunction(wrapper));
+            interpreter.setProperty(scope, 'digitalRead', interpreter.createNativeFunction(wrapper));
             // Add an API function for the readanalog() block.
             var wrapper = function (channel) {
                 channel = channel ? channel.toString() : '';
                 return interpreter.createPrimitive(modifiedFirmata.simpleReadAnalog(channel));
             };
-            interpreter.setProperty(scope, 'modifiedFirmata_simpleReadAnalog', interpreter.createNativeFunction(wrapper));
+            interpreter.setProperty(scope, 'analogRead', interpreter.createNativeFunction(wrapper));
             // Add an API function for the writedigital() block.
             var wrapper = function (channel, value) {
                 channel = channel ? channel.toString() : '';
                 value = (value && value.data) ? true : false;
                 return interpreter.createPrimitive(modifiedFirmata.simpleWriteDigital(channel, value));
             };
-            interpreter.setProperty(scope, 'modifiedFirmata_simpleWriteDigital', interpreter.createNativeFunction(wrapper));
+            interpreter.setProperty(scope, 'digitalWrite', interpreter.createNativeFunction(wrapper));
             var wrapper = function (millis, callback) {
                 millis = millis ? millis.toString() : '';
                 var callbackFunc = function () {
