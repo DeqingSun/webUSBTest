@@ -77,12 +77,16 @@
         </tr>
     </table>
     <p>
-        <button onclick="genCode()" id="runButton">Generate JS</button>
+        <button onclick="runCodeBlocks()" id="runButtonBlocks">Run Blocks with highlight</button>
+        <button onclick="runFullspeedCodeBlocks()" id="runFullSpeedButtonBlocks">Run Blocks Fullspeed</button>
+        <button onclick="stopCodeBlocks()" id="stopButtonBlocks" disabled="disabled">Stop Blocks</button>
+        <button onclick="saveCodeBlocks()" id="saveButtonBlocks">Save Blocks on Cloud</button>
+    </p>
+    <p>
+        <button onclick="genCode()" id="runButton">Generate JS from Blocks</button>
         <button onclick="runFullspeedCode()" id="runFullSpeedButton">Run JavaScript Fullspeed</button>
         <button onclick="stopCode()" id="stopButton" disabled="disabled">Stop JavaScript</button>
     </p>
-
-
 
     <div id="editor"></div>
     <xml id="toolbox" style="display: none">
@@ -448,6 +452,11 @@
             , toolbox: document.getElementById('toolbox')
         });
         Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);
+        // An href with #key trigers an AJAX call to retrieve saved blocks.
+        if ('BlocklyStorage' in window && window.location.hash.length > 1) {
+            BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+        }
+
         var myInterpreter = null;
         var runStepsTimeout = null;
         var runStepsStop = false;
@@ -519,7 +528,72 @@
             highlightPause = true;
         }
 
+        function runCodeBlocks() {
+            // Generate JavaScript code and parse it.
+            Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+            Blockly.JavaScript.addReservedWords('highlightBlock');
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            myInterpreter = new Interpreter(code, initApi);
+            document.getElementById('stopButtonBlocks').disabled = '';
+            document.getElementById('runButtonBlocks').disabled = 'disabled';
+            document.getElementById('runFullSpeedButtonBlocks').disabled = 'disabled';
+            highlightPause = false;
+            workspace.highlightBlock(null);
+            clearTimeout(runStepsTimeout);
+            runStepsTimeout = setTimeout("runSteps()", 0);
+            runStepsStop = false;
+        }
+
+        function runStepsBlocks() {
+            clearTimeout(runStepsTimeout);
+            try {
+                var ok = myInterpreter.step();
+            } finally {
+                if (!ok) {
+                    // Program complete, no more code to execute.
+                    document.getElementById('stopButtonBlocks').disabled = 'disabled';
+                    document.getElementById('runButtonBlocks').disabled = '';
+                    document.getElementById('runFullSpeedButtonBlocks').disabled = '';
+                    workspace.highlightBlock(null);
+                    return;
+                }
+            }
+            if (runStepsStop) {
+                // A block has been highlighted.  Pause execution here.
+                //highlightPause = false;
+            } else {
+                // Keep executing until a highlight statement is reached.
+                runStepsTimeout = setTimeout("runStepsBlocks()", 0);
+            }
+        }
+
+        function stopCodeBlocks() {
+            clearTimeout(runStepsTimeout);
+            if (!runStepsStop) runStepsStop = true;
+            workspace.highlightBlock(null);
+            document.getElementById('stopButtonBlocks').disabled = 'disabled';
+            document.getElementById('runButtonBlocks').disabled = '';
+            document.getElementById('runFullSpeedButtonBlocks').disabled = '';
+        }
+
+        function runFullspeedCodeBlocks() {
+            runStepsStop = false;
+            document.getElementById('stopButtonBlocks').disabled = '';
+            document.getElementById('runButtonBlocks').disabled = 'disabled';
+            document.getElementById('runFullSpeedButtonBlocks').disabled = 'disabled';
+            // Generate JavaScript code and parse it.
+            var code = Blockly.JavaScript.workspaceToCode(workspace);
+            myInterpreter = new Interpreter(code, initApi);
+            tryToStart();
+            //console.log(myInterpreter.run());
+        }
+
+        function saveCodeBlocks() {
+            BlocklyStorage.link();
+        }
+
         function genCode() {
+            Blockly.JavaScript.STATEMENT_PREFIX = '';
             var code = Blockly.JavaScript.workspaceToCode(workspace);
             editor.setValue(code);
         }
@@ -556,6 +630,9 @@
                 document.getElementById('stopButton').disabled = 'disabled';
                 document.getElementById('runButton').disabled = '';
                 document.getElementById('runFullSpeedButton').disabled = '';
+                document.getElementById('stopButtonBlocks').disabled = 'disabled';
+                document.getElementById('runButtonBlocks').disabled = '';
+                document.getElementById('runFullSpeedButtonBlocks').disabled = '';
             }
         }
     </script>
