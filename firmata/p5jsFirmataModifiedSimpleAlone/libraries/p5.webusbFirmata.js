@@ -15,11 +15,7 @@ var serial = {};
             {
                 'vendorId': 0x20A0
                 , 'productId': 0x4267
-            }
-
-
-            
-            , ];
+            }];
         return navigator.usb.requestDevice({
             'filters': filters
         }).then(
@@ -176,6 +172,13 @@ var ModifiedFirmata = function () {
         }
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F]));
     }
+    this.analogWrite = function (pin, value) {
+        if (this.pins[pin] == null) this.pins[pin] = {};
+        this.pins[pin].value = value;
+        if (pin >= 0 && pin <= 15) {
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F]));
+        }
+    }
 
     this.queryPinState = function (pin) {
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
@@ -264,6 +267,13 @@ var ModifiedFirmata = function () {
         }
         return pinValue;
     }
+    this.simpleWriteServo = function (pin, value) {
+        var pinValue = 0;
+        if (this.pins[pin] && this.pins[pin].mode == 4) {} else {
+            this.pinMode(pin, 4);
+        }
+        this.analogWrite(pin, value);
+    }
 }
 
 /////////global////////
@@ -327,6 +337,10 @@ var str2ab = function (str) {
     p5.WebusbFirmata.prototype.simpleReadAnalog = function (pinNumber) {
         return modifiedFirmata.simpleReadAnalog(pinNumber);
     };
+
+    p5.WebusbFirmata.prototype.simpleWriteServo = function (_pin, _value) {
+        modifiedFirmata.simpleWriteServo(_pin, _value);
+    }
 
     var SerialConnection = function () {};
 
