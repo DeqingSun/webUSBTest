@@ -28,6 +28,7 @@
     <button onclick="runCode()" id="runButton">Run code</button>
     <button onclick="uploadCode()" id="uploadButton">Upload code</button>
     <button onclick="downloadCode()" id="downloadButton">Download code</button>
+    <input type='file' id="fileid" hidden/>
     <div id="iframeContainer">
         <iframe id="testFrame" style="height: 400px; width: 600px;" allow="usb">
             <p>Your browser does not support iframes.</p>
@@ -96,6 +97,38 @@
             });
             saveAs(blob, "code.js");
         }
+
+        function uploadCode() {
+            // Check for the various File API support.
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+                // Great success! All the File APIs are supported.
+                document.getElementById('fileid').click();
+            } else {
+                alert('The File APIs are not fully supported in this browser.');
+            }
+        }
+
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
+            for (var i = 0, f; f = files[i]; i++) {
+                if (!f.type.match('text.*')) {
+                    continue;
+                }
+
+                var reader = new FileReader();
+                // Closure to capture the file information.
+                reader.onload = (function (theFile) {
+                    return function (e) {
+                        editor.setValue(e.target.result);
+                    };
+                })(f);
+                // Read in the image file as a data URL.
+                reader.readAsText(f);
+            }
+        }
+
+        document.getElementById('fileid').addEventListener('change', handleFileSelect, false);
     </script>
 </body>
 
