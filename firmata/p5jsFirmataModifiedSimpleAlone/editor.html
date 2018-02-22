@@ -18,7 +18,7 @@
             editor.getSession().setUseWrapMode(true);
         }
     </script>
-    <script src="libraries/FileSaver.js" type="text/javascript"></script>
+    <script src="libraries/FileSaver.js" type="text/javascript"></script>       
 </head>
 
 <body>
@@ -50,7 +50,7 @@
             var css = '';
             var js = editor.getValue();
 
-            var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script>';
+            var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script><script src="libraries\/firmataHelper.js" type="text\/javascript"><\/script>';
             var webusbFirmataLib = '';
 
             var result = '<html><head>' + metaStr + p5lib + webusbFirmataLib + '<style>' + css + '</style></head><body>' + html + '<script type="text/javascript">' + js + '<\/script><\/body><\/html>';

@@ -13,16 +13,22 @@ function draw() {
     if ((timeNow - lastLEDTime) > 1000) {
         lastLEDTime = timeNow;
         if (Math.round(timeNow / 1000) & 1) { //alternatively
-            top.webusbFirmata.simpleWriteDigital(10, true);
+            digitalWrite(10, true);
             io1circleColor = color(255, 255, 255);
         } else {
-            top.webusbFirmata.simpleWriteDigital(10, false);
+            digitalWrite(10, false);
             io1circleColor = color(0, 0, 0);
         }
     }
 
-    sliderValue = top.webusbFirmata.simpleReadAnalog(0);
-
+    sliderValue = analogRead(0);
+    //also map analog 1 value to D0
+    if ((analogRead(1)) > 512) {
+        digitalWrite(1, true);
+    } else {
+        digitalWrite(1, false);
+    }
+    
     fill(0);
     text("IO 10", 10, 30);
     text("Read IO A0: " + sliderValue, 10, 90);
@@ -33,5 +39,5 @@ function draw() {
 }
 
 function mouseClicked() {
-    top.webusbFirmata.connect(); //will not reconnect if already connected
+    connectFirmata(); //will not reconnect if already connected
 }
