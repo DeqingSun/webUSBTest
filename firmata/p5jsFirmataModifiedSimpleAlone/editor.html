@@ -9,16 +9,7 @@
     <script src="libraries/p5.min.js" type="text/javascript"></script>
     <script src="libraries/p5.webusbFirmata.js" type="text/javascript"></script>
     <script src="libraries/ace.js" type="text/javascript" charset="utf-8"></script>
-    <script>
-        var editor;
-        window.onload = function () {
-            editor = ace.edit("editor");
-            editor.getSession().setMode("ace/mode/javascript");
-            editor.getSession().setTabSize(2);
-            editor.getSession().setUseWrapMode(true);
-        }
-    </script>
-    <script src="libraries/FileSaver.js" type="text/javascript"></script>       
+    <script src="libraries/FileSaver.js" type="text/javascript"></script>
 </head>
 
 <body>
@@ -79,13 +70,22 @@
 
 
         var client = new XMLHttpRequest();
-        client.open('GET', 'sketch_iframe.js');
-        client.onreadystatechange = function () {
-            editor.setValue(client.responseText);
-            editor.navigateFileStart();
-        }
-        client.send();
 
+        window.onload = function () {
+            editor = ace.edit("editor");
+            editor.getSession().setMode("ace/mode/javascript");
+            editor.getSession().setTabSize(2);
+            editor.getSession().setUseWrapMode(true);
+
+            client.open('GET', 'sketch_iframe.js');
+            client.onreadystatechange = function () {
+                if (client.readyState === XMLHttpRequest.DONE && client.status === 200) {
+                    editor.setValue(client.responseText);
+                    editor.navigateFileStart();
+                } else {}
+            }
+            client.send();
+        }
         var webusbFirmata;
 
         webusbFirmata = new p5.WebusbFirmata(); // make a new instance of the Makesense library
