@@ -39,7 +39,7 @@
 
             var html = '';
             var css = '';
-            var js = editor.getValue();
+            var js = 'window.onerror = function (message, file, line, col, error) { alert("Error occurred: " + error.message + "\\non line: " + line); return false;};' + editor.getValue();
 
             var p5lib = '<script src="libraries\/p5.min.js" type="text\/javascript"><\/script><script src="libraries\/firmataHelper.js" type="text\/javascript"><\/script>';
             var webusbFirmataLib = '';
