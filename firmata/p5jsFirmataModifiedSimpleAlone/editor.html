@@ -112,7 +112,7 @@
         function handleFileSelect(evt) {
             var files = evt.target.files; // FileList object
             for (var i = 0, f; f = files[i]; i++) {
-                if (!f.type.match('text.*')) {
+                if (!(f.type.match('text.*') || f.type.match('.*javascript'))) {
                     continue;
                 }
 
