@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <!-- Origin Trial Token, feature = WebUSB (For Chrome M57+), origin = https://deqingsun.github.io, expires = 2017-09-05 -->
     <meta http-equiv="origin-trial" data-feature="WebUSB (For Chrome M57+)" data-expires="2017-09-05" content="AmLWGTzxckQANrW+FRfQfTjdgyvd9L8QZx0UHeYEhSHwkLS2gHjaNb/hlJNjvZqEW6pTAMo4Datc9ZOPYFgJTwEAAABUeyJvcmlnaW4iOiJodHRwczovL2RlcWluZ3N1bi5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IldlYlVTQjIiLCJleHBpcnkiOjE1MDQ1Njk2MDB9">
-    <title>P5JS insert</title>
+    <title>P5JS playground</title>
     <script src="libraries/p5.min.js" type="text/javascript"></script>
     <script src="libraries/p5.webusbFirmata.js" type="text/javascript"></script>
     <script src="libraries/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -72,12 +72,19 @@
         var client = new XMLHttpRequest();
 
         window.onload = function () {
+            var loadFileName = 'sketch_default.js';
+
+            try {
+                var parameterValue = decodeURIComponent(window.location.search.match(/(\?|&)file\=([^&]*)/)[2]);
+                loadFileName=parameterValue;
+            } catch (err) {}
+
             editor = ace.edit("editor");
             editor.getSession().setMode("ace/mode/javascript");
             editor.getSession().setTabSize(2);
             editor.getSession().setUseWrapMode(true);
 
-            client.open('GET', 'sketch_iframe.js');
+            client.open('GET', loadFileName);
             client.onreadystatechange = function () {
                 if (client.readyState === XMLHttpRequest.DONE && client.status === 200) {
                     editor.setValue(client.responseText);
