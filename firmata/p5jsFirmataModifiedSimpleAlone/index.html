@@ -75,8 +75,19 @@
             var loadFileName = 'sketch_default.js';
 
             try {
+                var pidValue = decodeURIComponent(window.location.search.match(/(\?|&)pid\=([^&]*)/)[2]);
+                var vidValue = decodeURIComponent(window.location.search.match(/(\?|&)vid\=([^&]*)/)[2]);
+                var newDevice = {
+                    'vendorId': parseInt(vidValue, 16)
+                    , 'productId': parseInt(pidValue, 16)
+                };
+                usbfiltersilters.push(newDevice);
+            } catch (err) {}
+
+
+            try {
                 var parameterValue = decodeURIComponent(window.location.search.match(/(\?|&)file\=([^&]*)/)[2]);
-                loadFileName=parameterValue;
+                loadFileName = parameterValue;
             } catch (err) {}
 
             editor = ace.edit("editor");

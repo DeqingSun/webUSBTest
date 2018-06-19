@@ -1,6 +1,12 @@
 //serial code
 var serial = {};
 
+var usbfiltersilters = [
+    {
+        'vendorId': 0x20A0
+        , 'productId': 0x4267
+            }];
+
 (function () {
     'use strict';
 
@@ -11,13 +17,8 @@ var serial = {};
     };
 
     serial.requestPort = function () {
-        const filters = [
-            {
-                'vendorId': 0x20A0
-                , 'productId': 0x4267
-            }];
         return navigator.usb.requestDevice({
-            'filters': filters
+            'filters': usbfiltersilters
         }).then(
             device => new serial.Port(device)
         );
