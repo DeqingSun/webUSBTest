@@ -45,6 +45,7 @@ var usbfiltersilters = [
                 }
             })
             .then(() => this.device_.claimInterface(3))
+            .then(() => this.device_.selectAlternateInterface(3, 0))
             .then(() => this.device_.controlTransferOut({
                 'requestType': 'class'
                 , 'recipient': 'interface'
