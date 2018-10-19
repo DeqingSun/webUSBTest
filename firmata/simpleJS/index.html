@@ -1,0 +1,26 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>JavaScript simple test</title>
+</head>
+
+<body>
+    <button style="position: absolute; bottom: 0" id="sendABC">send 'ABC' in 3 seconds</button>
+    <button style="position: absolute; bottom: 20" id="p10high">Set pin 10 to HIGH</button>
+    <button style="position: absolute; bottom: 40" id="p10low">Set pin 10 to LOW</button>
+    <button style="position: absolute; bottom: 60" id="p10input">Read pin 10</button>
+    <button style="position: absolute; bottom: 80" id="sendLeftArrow">send Left arrow in 3 seconds</button>
+    <button style="position: absolute; left: 160; bottom: 80" id="readA0">Read A0</button>
+    <button style="position: absolute; left: 160; bottom: 60" id="readA6">Read A6</button>
+    <button style="position: absolute; left: 160; bottom: 40" id="readPollA6">Read A6 auto</button>
+    <button style="position: absolute; left: 160; bottom: 0" id="connect">Connect</button>
+    
+    <div id="buffer"> </div>
+    <script src="serial.js"></script>
+    <script src="modifiedFirmata.js"></script>
+    <script src="main.js"></script>
+    <script src="customize.js"></script>
+</body>
+
+</html>
