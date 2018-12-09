@@ -12,6 +12,7 @@
             editor.getSession().setTabSize(2);
             editor.getSession().setUseWrapMode(true);
             editor.setValue("console.log('This is example turn Pin13 High for 1 second');\nmodifiedFirmata.simpleWriteDigital(13, true);\nsetTimeout(function(){modifiedFirmata.simpleWriteDigital(13, false);}, 1000);");
+            editor.navigateFileStart();
         }
     </script>
     <style>
