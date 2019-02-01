@@ -72,7 +72,7 @@ if (!navigator.usb){
 
 if ('BlocklyStorage' in window) {
     BlocklyStorage.HTTPREQUEST_ERROR = 'There was a problem with the request.\n';
-    BlocklyStorage.LINK_ALERT = 'Share your blocks with this link:\n\n%1';
+    BlocklyStorage.LINK_ALERT = 'Share your blocks with this link:\n\n%1\n\nYou may copy it from your address bar';
     BlocklyStorage.HASH_ERROR = 'Sorry, "%1" doesn\'t correspond with any saved Blockly file.';
     BlocklyStorage.XML_ERROR = 'Could not load your saved file.\nPerhaps it was created with a different version of Blockly?';
 } else {

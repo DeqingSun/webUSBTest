@@ -128,6 +128,7 @@
             <block type="readdigital"></block>
             <block type="readanalog"></block>
             <block type="writedigital"></block>
+            <block type="writeanalog"></block>
             <block type="delay"></block>
         </category>
     </xml>
@@ -381,6 +382,17 @@
                 this.setHelpUrl('http://www.example.com/');
             }
         };
+        Blockly.Blocks['writeanalog'] = {
+            init: function () {
+                this.appendValueInput("CHANNEL").setCheck("Number").appendField("Analog Write Channel");
+                this.appendValueInput("VALUE").setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("Level");
+                this.setPreviousStatement(true, null);
+                this.setNextStatement(true, null);
+                this.setColour(65);
+                this.setTooltip('');
+                this.setHelpUrl('http://www.example.com/');
+            }
+        };
         Blockly.Blocks['delay'] = {
             init: function () {
                 this.appendValueInput("millis").setCheck("Number").appendField("delayMillis");
@@ -430,6 +442,13 @@
             var value_value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC);
             // TODO: Assemble JavaScript into code variable.
             var code = 'digitalWrite(' + value_channel + ',' + value_value + ');\n';
+            return code;
+        };
+        Blockly.JavaScript['writeanalog'] = function (block) {
+            var value_channel = Blockly.JavaScript.valueToCode(block, 'CHANNEL', Blockly.JavaScript.ORDER_ATOMIC);
+            var value_value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ATOMIC);
+            // TODO: Assemble JavaScript into code variable.
+            var code = 'modifiedFirmata_simpleWriteAnalog(' + value_channel + ',' + value_value + ');';
             return code;
         };
         Blockly.JavaScript['delay'] = function (block) {
@@ -516,6 +535,13 @@
                 return interpreter.createPrimitive(modifiedFirmata.simpleWriteDigital(channel, value));
             };
             interpreter.setProperty(scope, 'digitalWrite', interpreter.createNativeFunction(wrapper));
+            // Add an API function for the writeanalog() block.
+            var wrapper = function (channel, value) {
+                channel = channel ? channel.toString() : '';
+                value = (value) ? value : 0;
+                return interpreter.createPrimitive(modifiedFirmata.simpleWriteAnalog(channel, value));
+            };
+            interpreter.setProperty(scope, 'modifiedFirmata_simpleWriteAnalog', interpreter.createNativeFunction(wrapper));
             var wrapper = function (millis, callback) {
                 millis = millis ? millis.toString() : '';
                 var callbackFunc = function () {
