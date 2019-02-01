@@ -2,6 +2,10 @@ var analogRead = function(pin){
     return top.modifiedFirmata.simpleReadAnalog(pin);
 }
 
+var analogWrite = function(pin, value){
+    return top.modifiedFirmata.simpleWriteAnalog(pin, value);
+}
+
 var digitalWrite = function(pin, value){
     return top.modifiedFirmata.simpleWriteDigital(pin, value);
 }

@@ -174,7 +174,6 @@ var ModifiedFirmata = function () {
         return pinValue;
     }
     this.simpleWriteDigital = function (pin, value) {
-        var pinValue = false;
         if (this.pins[pin] && this.pins[pin].mode == 1) {} else {
             this.pinMode(pin, 1);
             //console.log("set to output");
@@ -192,6 +191,12 @@ var ModifiedFirmata = function () {
             console.log("set to analog");
         }
         return pinValue;
+    }
+    this.simpleWriteAnalog = function (pin, value) {
+        if (this.pins[pin] && this.pins[pin].mode == 3) {} else {
+            this.pinMode(pin, 3);
+        }
+        this.analogWrite(pin, value);
     }
 
     this.simpleWriteServo = function (pin, value) {
