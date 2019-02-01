@@ -27,8 +27,8 @@ var ModifiedFirmata = function () {
         , PULSE_IN = 0x74;
 
     var serialconnection = null;
-    
-    var analogLut=[18,19,20,21,22,23,4,6,8,9,10,12];//leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
+
+    var analogLut = [18, 19, 20, 21, 22, 23, 4, 6, 8, 9, 10, 12]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
 
 
     this.digitalCallBack = [];
@@ -37,10 +37,10 @@ var ModifiedFirmata = function () {
     this.analogPins = [];
     this.receiveBuffer = [0, 0, 0, 0, 0, 0];
     this.bufferLen = this.receiveBuffer.length;
-    
+
     var simpleDigitalValue = [];
     var simpleAnalogValue = [];
-    
+
 
     this.setSerialConnection = function (_serialconnection, _log) {
         this.serialconnection = _serialconnection;
@@ -98,6 +98,14 @@ var ModifiedFirmata = function () {
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F]));
     }
 
+    this.analogWrite = function (pin, value) {
+        if (this.pins[pin] == null) this.pins[pin] = {};
+        this.pins[pin].value = value;
+        if (pin >= 0 && pin <= 15) {
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F]));
+        }
+    }
+
     this.queryPinState = function (pin) {
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
     };
@@ -121,7 +129,7 @@ var ModifiedFirmata = function () {
     };
 
     this.readAnalogPin = function (pin, analogCallBack) {
-        if (pin<analogLut.length){
+        if (pin < analogLut.length) {
             this.setAnalogReport(pin, true);
             this.pinMode(analogLut[pin], 2);
             this.analogCallBack[pin] = analogCallBack;
@@ -138,26 +146,26 @@ var ModifiedFirmata = function () {
         this.pinMode(pin, 1);
         this.digitalWrite(pin, level);
     }
-    
+
     var simpleAnalogCallBack = function (pin, value) {
         //var printMsg = "Analog Msg, Pin: " + pin + " PortValue: " + value;
-        simpleAnalogValue[pin]=value;  
+        simpleAnalogValue[pin] = value;
     }
 
     var simpleDigitalCallBack = function (pin, value) {
         //var printMsg = "Digital Msg, pin: " + pin + " PortValue: " + value;
-        simpleDigitalValue[pin]=value;
+        simpleDigitalValue[pin] = value;
         //console.log(simpleDigitalValue);
-        
+
     }
-    
-    this.simpleReadDigital = function (pin){
+
+    this.simpleReadDigital = function (pin) {
         var pinValue = false;
-        if (this.pins[pin] && this.pins[pin].mode==0)  {
-            if (simpleDigitalValue[pin]!=null) {
-                pinValue=simpleDigitalValue[pin];
+        if (this.pins[pin] && this.pins[pin].mode == 0) {
+            if (simpleDigitalValue[pin] != null) {
+                pinValue = simpleDigitalValue[pin];
             }
-        }else{
+        } else {
             this.pinMode(pin, 0);
             this.setDigitalReport(Math.floor(pin / 8), true);
             this.digitalCallBack[pin] = simpleDigitalCallBack;
@@ -165,25 +173,33 @@ var ModifiedFirmata = function () {
         }
         return pinValue;
     }
-    this.simpleWriteDigital = function (pin,value){
+    this.simpleWriteDigital = function (pin, value) {
         var pinValue = false;
-        if (this.pins[pin] && this.pins[pin].mode==1)  {
-        }else{
+        if (this.pins[pin] && this.pins[pin].mode == 1) {} else {
             this.pinMode(pin, 1);
             //console.log("set to output");
         }
         this.digitalWrite(pin, value);
     }
-    this.simpleReadAnalog = function (pin){
+    this.simpleReadAnalog = function (pin) {
         var pinValue = 0;
-        if (this.pins[analogLut[pin]] && this.pins[analogLut[pin]].mode==2)  {
-            if (simpleAnalogValue[pin]!=null) {
-                pinValue=simpleAnalogValue[pin];
+        if (this.pins[analogLut[pin]] && this.pins[analogLut[pin]].mode == 2) {
+            if (simpleAnalogValue[pin] != null) {
+                pinValue = simpleAnalogValue[pin];
             }
-        }else{
+        } else {
             this.readAnalogPin(pin, simpleAnalogCallBack);
             console.log("set to analog");
         }
         return pinValue;
+    }
+
+    this.simpleWriteServo = function (pin, value) {
+        var pinValue = 0;
+        if (this.pins[pin] && this.pins[pin].mode == 4) {} else {
+            this.pinMode(pin, 4);
+        }
+        this.analogWrite(pin, value);
+
     }
 }
