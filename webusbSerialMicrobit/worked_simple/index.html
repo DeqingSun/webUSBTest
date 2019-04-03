@@ -1,0 +1,88 @@
+<html>
+<header>
+    <title>This is title</title>
+</header>
+
+<body>
+    <script type="text/javascript" src="dap.bundle.js"></script>
+    <script>
+        // Choose a device
+        var microbitTarget = null;
+        function selectDevice() {
+            //setStatus("Selecting device...");
+            //setTransfer();
+            navigator.usb.requestDevice({
+                filters: [{vendorId: 0xD28}]
+            })
+            .then(device => update(device))
+            .catch(error => {
+                //statusEl.style.visibility = "hidden";
+                //setStatus(error);
+            });
+        }
+        function update(device) {
+            //if (!buffer) return;
+            const transport = new DAPjs.WebUSB(device);
+            microbitTarget = new DAPjs.DAPLink(transport);
+            
+            var buf="";
+            microbitTarget.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
+                //put data into buffer and find newline.
+                buf=buf+data;
+                //console.log("buf",buf);
+                while ((newlineIndex=buf.indexOf('\n'))>=0){
+                    newline=buf.substring(0,newlineIndex)
+                    buf=buf.substring(newlineIndex+1);
+                    document.getElementById("analogValue").innerHTML = "AnalogValue: "+newline;
+                                    
+                    //console.log("newline",newline);
+                }
+                
+                
+
+            });
+            
+            return microbitTarget.connect()
+            .then(() => {
+                microbitTarget.setSerialBaudrate(115200);
+                return microbitTarget.getSerialBaudrate();
+            })
+            .then(baud => {
+                microbitTarget.startSerialRead();
+                console.log('Listening at ${baud} baud...');
+        
+
+
+            });
+        
+        
+        
+        }
+        
+        function connectMicrobit() {
+            selectDevice();
+            
+        }
+        var ledOn = false;
+        setInterval(function(){
+            if (microbitTarget!=null) {
+                if (ledOn) {
+                    microbitTarget.serialWrite("1\n");
+                    document.getElementById("LEDonCorner").innerHTML = "LED on corner: ON";
+                }else{
+                    microbitTarget.serialWrite("0\n");
+                    document.getElementById("LEDonCorner").innerHTML = "LED on corner: OFF";
+                }
+                ledOn = !ledOn;
+            }
+        }, 1000);
+    </script>    
+    
+    Test micorbit serial over webusb
+    <br>
+    <button type="button" onclick="connectMicrobit()">Connect to microbit</button>
+    <div id="analogValue">AnalogValue</div>
+    <div id="LEDonCorner">LED on corner:</div>
+</body>
+
+</html>
