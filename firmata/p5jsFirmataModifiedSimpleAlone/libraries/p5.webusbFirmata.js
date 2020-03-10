@@ -230,6 +230,19 @@ var ModifiedFirmata = function () {
         }
     };
 
+    this.setOneNeoPixel = function (r, g, b, index) {
+        r &= 0xFF;
+        g &= 0xFF;
+        b &= 0xFF;
+        index &= 0x7F;
+        var b1 = r >> 1;
+        var b2 = ((r & 0x01) << 6) | (g >> 2);
+        var b3 = ((g & 0x03) << 5) | (b >> 3);
+        var b4 = (b & 0x07) << 4;
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x10, index, b1, b2, b3, b4, END_SYSEX]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x11, END_SYSEX]));
+    };
+
     this.readAnalogPin = function (pin, analogCallBack) {
         if ((this.serialconnection) && (pin < analogLut.length)) {
             this.setAnalogReport(pin, true);
