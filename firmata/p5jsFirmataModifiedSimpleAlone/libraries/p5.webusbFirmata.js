@@ -5,7 +5,12 @@ var usbfiltersilters = [
     {
         'vendorId': 0x20A0
         , 'productId': 0x4267
-            }];
+    }, //Architectronics Funkey Funkey
+    {
+        'vendorId': 0x239a
+        , 'productId': 0x8011
+    }, //circuit playground classic
+];
 
 (function () {
     'use strict';
@@ -26,11 +31,14 @@ var usbfiltersilters = [
 
     serial.Port = function (device) {
         this.device_ = device;
+        this.interfaceNumber_ = 2; // original interface number of WebUSB Arduino demo
+        this.endpointIn_ = 5; // original in endpoint ID of WebUSB Arduino demo
+        this.endpointOut_ = 4; // original out endpoint ID of WebUSB Arduino demo
     };
 
     serial.Port.prototype.connect = function () {
         let readLoop = () => {
-            this.device_.transferIn(6, 64).then(result => {
+            this.device_.transferIn(this.endpointIn_, 64).then(result => {
                 this.onReceive(result.data);
                 readLoop();
             }, error => {
@@ -44,14 +52,32 @@ var usbfiltersilters = [
                     return this.device_.selectConfiguration(1);
                 }
             })
-            .then(() => this.device_.claimInterface(3))
-            .then(() => this.device_.selectAlternateInterface(3, 0))
+            .then(() => {
+                var configurationInterfaces = this.device_.configuration.interfaces;
+                configurationInterfaces.forEach(element => {
+                    element.alternates.forEach(elementalt => {
+                        if (elementalt.interfaceClass == 0xff) {
+                            this.interfaceNumber_ = element.interfaceNumber;
+                            elementalt.endpoints.forEach(elementendpoint => {
+                                if (elementendpoint.direction == "out") {
+                                    this.endpointOut_ = elementendpoint.endpointNumber;
+                                }
+                                if (elementendpoint.direction == "in") {
+                                    this.endpointIn_ = elementendpoint.endpointNumber;
+                                }
+                            })
+                        }
+                    })
+                })
+            })
+            .then(() => this.device_.claimInterface(this.interfaceNumber_))
+            .then(() => this.device_.selectAlternateInterface(this.interfaceNumber_, 0))
             .then(() => this.device_.controlTransferOut({
                 'requestType': 'class'
                 , 'recipient': 'interface'
                 , 'request': 0x22
                 , 'value': 0x01
-                , 'index': 0x03
+                , 'index': this.interfaceNumber_
             }))
             .then(() => {
                 readLoop();
@@ -64,13 +90,13 @@ var usbfiltersilters = [
                 , 'recipient': 'interface'
                 , 'request': 0x22
                 , 'value': 0x00
-                , 'index': 0x03
+                , 'index': this.interfaceNumber_
             })
             .then(() => this.device_.close());
     };
 
     serial.Port.prototype.send = function (data) {
-        return this.device_.transferOut(5, data);
+        return this.device_.transferOut(this.endpointOut_, data);
     };
 })();
 
