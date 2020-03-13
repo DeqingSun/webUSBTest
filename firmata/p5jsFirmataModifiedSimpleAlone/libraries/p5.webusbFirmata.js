@@ -166,6 +166,7 @@ var ModifiedFirmata = function () {
         
         if (this.receiveBuffer[this.bufferLen-29]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX) {
             if (this.receiveBuffer[this.bufferLen-28]==0x40 && this.receiveBuffer[this.bufferLen-27]==0x36){
+                this.accelStream = true;
                 for (var i=0;i<3;i++){
                     var floatBuffer = new ArrayBuffer(4);
                     var floatView = new DataView(floatBuffer);
@@ -209,7 +210,7 @@ var ModifiedFirmata = function () {
     this.setAccelStream = function (enableVal) {
         if (enableVal && !this.accelStream){
             if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
-            this.accelStream = true;
+            //this.accelStream = true; //do it in receive event
         }else if (!enableVal && this.accelStream){
             if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3B, END_SYSEX]));
             this.accelStream = false;
