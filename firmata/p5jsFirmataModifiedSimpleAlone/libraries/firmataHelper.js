@@ -32,6 +32,18 @@ var neoPixelWrite = function(_r, _g, _b, _index){
 
 //var readTemperature
 
+var readAccel = function(){
+    var isCircuitPlayground = true;
+    try {
+        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
+    } catch (e) {};
+    if (isCircuitPlayground){
+        return top.modifiedFirmata.simepleReadAccel();
+    }else{
+        return;
+    }   
+}
+
 var connectFirmata = function(){
     top.webusbFirmata.connect();
 }

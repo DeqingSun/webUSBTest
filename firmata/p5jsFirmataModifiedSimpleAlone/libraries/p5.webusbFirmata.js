@@ -138,8 +138,10 @@ var ModifiedFirmata = function () {
     this.analogCallBack = [];
     this.pins = [];
     this.analogPins = [];
-    this.receiveBuffer = [0, 0, 0, 0, 0, 0];
+    this.receiveBuffer = Array(32).fill(0);
     this.bufferLen = this.receiveBuffer.length;
+    this.accelStream = false;
+    this.accelVal = [0,0,0];
 
     var simpleDigitalValue = [];
     var simpleAnalogValue = [];
@@ -161,10 +163,26 @@ var ModifiedFirmata = function () {
     }
 
     this.checkReceivedData = function () {
+        
+        if (this.receiveBuffer[this.bufferLen-29]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX) {
+            if (this.receiveBuffer[this.bufferLen-28]==0x40 && this.receiveBuffer[this.bufferLen-27]==0x36){
+                for (var i=0;i<3;i++){
+                    var floatBuffer = new ArrayBuffer(4);
+                    var floatView = new DataView(floatBuffer);
+                    for (var j=0;j<4;j++){
+                        var onebyte = (this.receiveBuffer[this.bufferLen-25+i*8+j*2]&0x7F) + ((this.receiveBuffer[this.bufferLen-25+i*8+j*2+1]&0x1)<<7);
+                        floatView.setUint8(3-j,onebyte);
+                    }
+                    this.accelVal[i]=floatView.getFloat32(0);
+                }        
+            }
+        }
 
         /*if (this.receiveBuffer[this.bufferLen-6]==START_SYSEX && this.receiveBuffer[this.bufferLen-5]==PIN_STATE_RESPONSE){
             console.log(this.receiveBuffer);
         }*/
+        
+        
         if ((this.receiveBuffer[this.bufferLen - 3] & 0xF0) == DIGITAL_MESSAGE) {
             var port = this.receiveBuffer[this.bufferLen - 3] & 0x0F;
             var portValue = this.receiveBuffer[this.bufferLen - 2] | (this.receiveBuffer[this.bufferLen - 1] << 7);
@@ -186,6 +204,16 @@ var ModifiedFirmata = function () {
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].mode = mode;
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
+    };
+    
+    this.setAccelStream = function (enableVal) {
+        if (enableVal && !this.accelStream){
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
+            this.accelStream = true;
+        }else if (!enableVal && this.accelStream){
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3B, END_SYSEX]));
+            this.accelStream = false;
+        }
     };
 
     this.digitalWrite = function (pin, value) {
@@ -319,6 +347,10 @@ var ModifiedFirmata = function () {
             this.pinMode(pin, 4);
         }
         this.analogWrite(pin, value);
+    }
+    this.simepleReadAccel = function(){
+        this.setAccelStream(true);
+        return this.accelVal;
     }
 }
 

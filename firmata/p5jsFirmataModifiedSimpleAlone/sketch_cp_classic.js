@@ -27,7 +27,6 @@ function draw() {
         switch(roundSeconds % 3){ //r g b
             case 0:
                 firstNeoPixelColor = color(255, 0, 0);
-                console.log(red(firstNeoPixelColor));
                 neoPixelWrite(25,0,0,0);
                 break;
             case 1:
@@ -71,7 +70,8 @@ function draw() {
         steinhart = Math.round(steinhart * 10) / 10
     }
 
-    
+    var accelerationArray = readAccel();
+
     text("Read IO A0: " + analog0Value + " Temp: " + steinhart, 10, 90);
     fill(io13circleColor);
     ellipse(30, 50, 30, 30);
@@ -79,6 +79,13 @@ function draw() {
     ellipse(130, 50, 30, 30);
     fill(0);
     rect(10, 100, analog0Value / 2, 10);
+    
+    fill(0);
+    text("Acceleration:", 10, 130);
+    text("x: " + Math.round(accelerationArray[0] * 100) / 100, 10, 140);
+    text("y: " + Math.round(accelerationArray[1] * 100) / 100, 70, 140);
+    text("z: " + Math.round(accelerationArray[2] * 100) / 100, 130, 140);
+    
 }
 
 function mouseClicked() {
