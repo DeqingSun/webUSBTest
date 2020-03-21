@@ -24,13 +24,23 @@ var neoPixelWrite = function(_r, _g, _b, _index){
         isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
     } catch (e) {};
     if (isCircuitPlayground){
-        return top.modifiedFirmata.setOneNeoPixel(_r, _g, _b, _index);
+        return top.modifiedFirmata.circuitPlaygroundSetOneNeoPixel(_r, _g, _b, _index);
     }else{
         return;
     }   
 }
 
-//var readTemperature
+var readTemperature = function(){
+    var isCircuitPlayground = true;
+    try {
+        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
+    } catch (e) {};
+    if (isCircuitPlayground){
+        return top.modifiedFirmata.circuitPlaygroundSimpleReadTemperature();
+    }else{
+        return;
+    }   
+}
 
 var readAccel = function(){
     var isCircuitPlayground = true;
@@ -38,7 +48,7 @@ var readAccel = function(){
         isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
     } catch (e) {};
     if (isCircuitPlayground){
-        return top.modifiedFirmata.simepleReadAccel();
+        return top.modifiedFirmata.circuitPlaygroundSimpleReadAccel();
     }else{
         return;
     }   

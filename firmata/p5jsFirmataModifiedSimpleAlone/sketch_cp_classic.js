@@ -43,48 +43,31 @@ function draw() {
         
 
     }
-
-    analog0Value = analogRead(0);
+    
+    var temperature = readTemperature();
+    analog10Value = analogRead(10);
     
     fill(0);
     text("IO 13", 10, 30);
     text("NeoPixel 0", 100, 30);
     
-    var steinhart = "Unknown";
-    
-    //calc temperature
-    if (analog0Value!=0){
-        THERM_SERIES_OHMS  = 10000.0  // Resistor value in series with thermistor.
-        THERM_NOMINAL_OHMS = 10000.0  // Thermistor resistance at 25 degrees C.
-        THERM_NOMIMAL_C    = 25.0     // Thermistor temperature at nominal resistance.
-        THERM_BETA         = 3950.0   // Thermistor beta coefficient.
-        resistance = ((1023.0 * THERM_SERIES_OHMS)/analog0Value)
-        resistance -= THERM_SERIES_OHMS
-        // Now apply Steinhart-Hart equation.
-        steinhart = resistance / THERM_NOMINAL_OHMS
-        steinhart = Math.log(steinhart)
-        steinhart /= THERM_BETA
-        steinhart += 1.0 / (THERM_NOMIMAL_C + 273.15)
-        steinhart = 1.0 / steinhart
-        steinhart -= 273.15
-        steinhart = Math.round(steinhart * 10) / 10
-    }
-
     var accelerationArray = readAccel();
 
-    text("Read IO A0: " + analog0Value + " Temp: " + steinhart, 10, 90);
+    text("Temperature: " + temperature, 10, 90);
+    text("Read IO A10: " + analog10Value , 10, 110);
+    
     fill(io13circleColor);
     ellipse(30, 50, 30, 30);
     fill(firstNeoPixelColor);
     ellipse(130, 50, 30, 30);
     fill(0);
-    rect(10, 100, analog0Value / 2, 10);
+    rect(10, 120, analog10Value / 2, 10);
     
     fill(0);
-    text("Acceleration:", 10, 130);
-    text("x: " + Math.round(accelerationArray[0] * 100) / 100, 10, 140);
-    text("y: " + Math.round(accelerationArray[1] * 100) / 100, 70, 140);
-    text("z: " + Math.round(accelerationArray[2] * 100) / 100, 130, 140);
+    text("Acceleration:", 10, 150);
+    text("x: " + Math.round(accelerationArray[0] * 100) / 100, 10, 160);
+    text("y: " + Math.round(accelerationArray[1] * 100) / 100, 70, 160);
+    text("z: " + Math.round(accelerationArray[2] * 100) / 100, 130, 160);
     
 }
 

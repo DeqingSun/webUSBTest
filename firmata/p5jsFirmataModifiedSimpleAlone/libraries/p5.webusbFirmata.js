@@ -142,6 +142,7 @@ var ModifiedFirmata = function () {
     this.bufferLen = this.receiveBuffer.length;
     this.accelStream = false;
     this.accelVal = [0,0,0];
+    this.temperature = NaN;
 
     var simpleDigitalValue = [];
     var simpleAnalogValue = [];
@@ -207,7 +208,7 @@ var ModifiedFirmata = function () {
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
     };
     
-    this.setAccelStream = function (enableVal) {
+    this.circuitPlaygroundSetAccelStream = function (enableVal) {
         if (enableVal && !this.accelStream){
             if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
             //this.accelStream = true; //do it in receive event
@@ -259,7 +260,7 @@ var ModifiedFirmata = function () {
         }
     };
 
-    this.setOneNeoPixel = function (r, g, b, index) {
+    this.circuitPlaygroundSetOneNeoPixel = function (r, g, b, index) {
         r &= 0xFF;
         g &= 0xFF;
         b &= 0xFF;
@@ -349,10 +350,32 @@ var ModifiedFirmata = function () {
         }
         this.analogWrite(pin, value);
     }
-    this.simepleReadAccel = function(){
-        this.setAccelStream(true);
+    this.circuitPlaygroundSimpleReadAccel = function(){
+        this.circuitPlaygroundSetAccelStream(true);
         return this.accelVal;
     }
+    this.circuitPlaygroundSimpleReadTemperature = function(){
+        var analog0Value = this.simpleReadAnalog(0);
+        if (analog0Value != 0){
+            THERM_SERIES_OHMS  = 10000.0  // Resistor value in series with thermistor.
+            THERM_NOMINAL_OHMS = 10000.0  // Thermistor resistance at 25 degrees C.
+            THERM_NOMIMAL_C    = 25.0     // Thermistor temperature at nominal resistance.
+            THERM_BETA         = 3950.0   // Thermistor beta coefficient.
+            resistance = ((1023.0 * THERM_SERIES_OHMS)/analog0Value)
+            resistance -= THERM_SERIES_OHMS
+            // Now apply Steinhart-Hart equation.
+            steinhart = resistance / THERM_NOMINAL_OHMS
+            steinhart = Math.log(steinhart)
+            steinhart /= THERM_BETA
+            steinhart += 1.0 / (THERM_NOMIMAL_C + 273.15)
+            steinhart = 1.0 / steinhart
+            steinhart -= 273.15
+            this.temperature = Math.round(steinhart * 10) / 10
+        }
+        return this.temperature;
+    }
+    
+    
 }
 
 /////////global////////
