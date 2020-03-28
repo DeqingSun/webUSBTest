@@ -131,7 +131,7 @@ var ModifiedFirmata = function () {
 
     var serialconnection = null;
 
-    var analogLut = [18, 19, 20, 21, 22, 23, 4, 6, 8, 9, 10, 12]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
+    var analogLut = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
 
 
     this.digitalCallBack = [];
