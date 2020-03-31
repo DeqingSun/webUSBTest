@@ -143,6 +143,7 @@ var ModifiedFirmata = function () {
     this.accelStream = false;
     this.accelVal = [0,0,0];
     this.temperature = NaN;
+    this.capacitiveTouchValue = [];
 
     var simpleDigitalValue = [];
     var simpleAnalogValue = [];
@@ -179,11 +180,24 @@ var ModifiedFirmata = function () {
                 }        
             }
         }
+        
+        if (this.receiveBuffer[this.bufferLen-15]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX){
+            if (this.receiveBuffer[this.bufferLen-14]==0x40 && this.receiveBuffer[this.bufferLen-13]==0x43){
+                var inputPin = (this.receiveBuffer[this.bufferLen-11] & 0x7F) | ((this.receiveBuffer[this.bufferLen-10] & 0x01) << 7);
+                var longBuffer = new ArrayBuffer(4);
+                var longView = new DataView(longBuffer);
+                for (var i=0;i<4;i++){
+                    var onebyte = (this.receiveBuffer[this.bufferLen-9+i*2]&0x7F) + ((this.receiveBuffer[this.bufferLen-9+i*2+1]&0x1)<<7);
+                    longView.setUint8(3-i,onebyte);
+                }
+                var sensorValue=longView.getUint32(0);
+                this.capacitiveTouchValue[inputPin]=sensorValue;
+            }
+        }
 
         /*if (this.receiveBuffer[this.bufferLen-6]==START_SYSEX && this.receiveBuffer[this.bufferLen-5]==PIN_STATE_RESPONSE){
             console.log(this.receiveBuffer);
         }*/
-        
         
         if ((this.receiveBuffer[this.bufferLen - 3] & 0xF0) == DIGITAL_MESSAGE) {
             var port = this.receiveBuffer[this.bufferLen - 3] & 0x0F;
@@ -206,16 +220,6 @@ var ModifiedFirmata = function () {
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].mode = mode;
         if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
-    };
-    
-    this.circuitPlaygroundSetAccelStream = function (enableVal) {
-        if (enableVal && !this.accelStream){
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
-            //this.accelStream = true; //do it in receive event
-        }else if (!enableVal && this.accelStream){
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3B, END_SYSEX]));
-            this.accelStream = false;
-        }
     };
 
     this.digitalWrite = function (pin, value) {
@@ -258,19 +262,6 @@ var ModifiedFirmata = function () {
         for (var i = 0, len = str.length; i < len; i++) {
             this.sendKeycode(str.charCodeAt(i));
         }
-    };
-
-    this.circuitPlaygroundSetOneNeoPixel = function (r, g, b, index) {
-        r &= 0xFF;
-        g &= 0xFF;
-        b &= 0xFF;
-        index &= 0x7F;
-        var b1 = r >> 1;
-        var b2 = ((r & 0x01) << 6) | (g >> 2);
-        var b3 = ((g & 0x03) << 5) | (b >> 3);
-        var b4 = (b & 0x07) << 4;
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x10, index, b1, b2, b3, b4, END_SYSEX]));
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x11, END_SYSEX]));
     };
 
     this.readAnalogPin = function (pin, analogCallBack) {
@@ -350,6 +341,17 @@ var ModifiedFirmata = function () {
         }
         this.analogWrite(pin, value);
     }
+    
+    this.circuitPlaygroundSetAccelStream = function (enableVal) {
+        if (enableVal && !this.accelStream){
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
+            //this.accelStream = true; //do it in receive event
+        }else if (!enableVal && this.accelStream){
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3B, END_SYSEX]));
+            this.accelStream = false;
+        }
+    };
+    
     this.circuitPlaygroundSimpleReadAccel = function(){
         this.circuitPlaygroundSetAccelStream(true);
         return this.accelVal;
@@ -375,6 +377,35 @@ var ModifiedFirmata = function () {
         return this.temperature;
     }
     
+    this.circuitPlaygroundSetOneNeoPixel = function (r, g, b, index) {
+        r &= 0xFF;
+        g &= 0xFF;
+        b &= 0xFF;
+        index &= 0x7F;
+        var b1 = r >> 1;
+        var b2 = ((r & 0x01) << 6) | (g >> 2);
+        var b3 = ((g & 0x03) << 5) | (b >> 3);
+        var b4 = (b & 0x07) << 4;
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x10, index, b1, b2, b3, b4, END_SYSEX]));
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x11, END_SYSEX]));
+    };
+    
+    this.circuitPlaygroundReadCapacitiveTouch = function (pin) {
+        var validPins = [0, 1, 2, 3, 6, 9, 10, 12];
+        if(validPins. indexOf(pin) == -1){
+            return 0;
+        }
+        if (this.pins[pin] == null) this.pins[pin] = {};
+        if (this.pins[pin].capStreaming && this.pins[pin].capStreaming == true) {
+            if (this.capacitiveTouchValue[pin]){
+                return this.capacitiveTouchValue[pin];    
+            }
+        } else {
+            this.pins[pin].capStreaming = true;
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x41, pin & 0x7F, END_SYSEX]));
+        }
+        return 0;
+    }
     
 }
 

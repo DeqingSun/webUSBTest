@@ -76,6 +76,13 @@ var readSwitchButtonOnCPC = function(){
     }   
 }
 
+var readCapacitiveTouchOnCPC = function(pin){
+    if (isBoardCircuitPlayground()){
+        return top.modifiedFirmata.circuitPlaygroundReadCapacitiveTouch(pin);
+    }else{
+        return;
+    }   
+}
 
 //resource on Circuit Playground Classic END
 

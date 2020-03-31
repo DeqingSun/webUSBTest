@@ -71,6 +71,7 @@ function draw() {
     
     text("Left Button Pressed: "+(readLeftButtonOnCPC()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPC()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPC()?"Yes":"No "),10,180);
     
+    text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPC(9),10,200);
     //console.log(digitalRead(4));
     
 }
