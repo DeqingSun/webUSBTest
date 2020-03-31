@@ -27,15 +27,15 @@ function draw() {
         switch(roundSeconds % 3){ //r g b
             case 0:
                 firstNeoPixelColor = color(255, 0, 0);
-                neoPixelWrite(25,0,0,0);
+                neoPixelWriteOnCPC(25,0,0,0);
                 break;
             case 1:
                 firstNeoPixelColor = color(0, 255, 0);
-                neoPixelWrite(0,25,0,0);
+                neoPixelWriteOnCPC(0,25,0,0);
                 break;
             case 2:
                 firstNeoPixelColor = color(0, 0, 255);
-                neoPixelWrite(0,0,25,0);
+                neoPixelWriteOnCPC(0,0,25,0);
                 break;
 
         }
@@ -44,14 +44,14 @@ function draw() {
 
     }
     
-    var temperature = readTemperature();
+    var temperature = readTemperatureOnCPC();
     analog10Value = analogRead(10);
     
     fill(0);
     text("IO 13", 10, 30);
     text("NeoPixel 0", 100, 30);
     
-    var accelerationArray = readAccel();
+    var accelerationArray = readAccelOnCPC();
 
     text("Temperature: " + temperature, 10, 90);
     text("Read IO A10: " + analog10Value , 10, 110);
@@ -68,6 +68,10 @@ function draw() {
     text("x: " + Math.round(accelerationArray[0] * 100) / 100, 10, 160);
     text("y: " + Math.round(accelerationArray[1] * 100) / 100, 70, 160);
     text("z: " + Math.round(accelerationArray[2] * 100) / 100, 130, 160);
+    
+    text("Left Button Pressed: "+(readLeftButtonOnCPC()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPC()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPC()?"Yes":"No "),10,180);
+    
+    //console.log(digitalRead(4));
     
 }
 

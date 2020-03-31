@@ -18,41 +18,66 @@ var servoWrite = function(pin, value){
     return top.modifiedFirmata.simpleWriteServo(pin, value);
 }
 
-var neoPixelWrite = function(_r, _g, _b, _index){
-    var isCircuitPlayground = true;
+//resource on Circuit Playground Classic
+
+var isBoardCircuitPlayground = function(){
+    var isCircuitPlayground = false;
     try {
         isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
     } catch (e) {};
-    if (isCircuitPlayground){
+    return isCircuitPlayground;
+}
+
+var neoPixelWriteOnCPC = function(_r, _g, _b, _index){
+    if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundSetOneNeoPixel(_r, _g, _b, _index);
     }else{
         return;
     }   
 }
 
-var readTemperature = function(){
-    var isCircuitPlayground = true;
-    try {
-        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
-    } catch (e) {};
-    if (isCircuitPlayground){
+var readTemperatureOnCPC = function(){
+    if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundSimpleReadTemperature();
     }else{
         return;
     }   
 }
 
-var readAccel = function(){
-    var isCircuitPlayground = true;
-    try {
-        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
-    } catch (e) {};
-    if (isCircuitPlayground){
+var readAccelOnCPC = function(){
+    if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundSimpleReadAccel();
     }else{
         return;
     }   
 }
+
+var readLeftButtonOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return digitalRead(4);
+    }else{
+        return;
+    }   
+}
+
+var readRightButtonOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return digitalRead(19);
+    }else{
+        return;
+    }   
+}
+
+var readSwitchButtonOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return digitalRead(21);
+    }else{
+        return;
+    }   
+}
+
+
+//resource on Circuit Playground Classic END
 
 var connectFirmata = function(){
     top.webusbFirmata.connect();
