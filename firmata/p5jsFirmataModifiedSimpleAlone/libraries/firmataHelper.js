@@ -100,6 +100,22 @@ var readSoundSensorOnCPC = function(){
     }   
 }
 
+var playToneOnCPC = function(freq, durationMs = 0){
+    if (isBoardCircuitPlayground()){
+        return top.modifiedFirmata.circuitPlaygroundPlayTone(freq, durationMs);
+    }else{
+        return;
+    }   
+}
+
+var stopToneOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return top.modifiedFirmata.circuitPlaygroundStopTone();
+    }else{
+        return;
+    }   
+}
+
 //resource on Circuit Playground Classic END
 
 var connectFirmata = function(){

@@ -1,6 +1,8 @@
 var lastLEDTime = 0;
 var io13circleColor,firstNeoPixelColor;
 var analog0Value = 0;
+var tonePlayingNow = -1;
+var toneStartTime = 0;
 
 function setup() {
     createCanvas(640, 360);
@@ -39,9 +41,23 @@ function draw() {
                 break;
 
         }
-        
-        
-
+    }
+    //Tone playing handler
+    if (tonePlayingNow>=0){
+        var lapsedTime = millis()-toneStartTime;
+        if (tonePlayingNow == 0){
+            playToneOnCPC(262,100); //Do for 100mS
+            tonePlayingNow = 1;
+        }else if(tonePlayingNow == 1 && lapsedTime>=500){
+            playToneOnCPC(294,200); //Re for 200mS
+            tonePlayingNow = 2;
+        }else if(tonePlayingNow == 2 && lapsedTime>=1000){
+            playToneOnCPC(330); //Mi forever until stopped
+            tonePlayingNow = 3;
+        }else if(tonePlayingNow == 3 && lapsedTime>=1500){
+            stopToneOnCPC();
+            tonePlayingNow = -1;
+        }
     }
     
     var temperature = readTemperatureOnCPC();
@@ -74,6 +90,7 @@ function draw() {
     text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPC(9),10,200);
     text("Light Sensor value: "+readLightSensorOnCPC(),10,220);
     text("Sound Sensor value: "+readSoundSensorOnCPC(),10,240);
+    text("Press Space bar to play Do Re Mi",10,260);
 
     //console.log(digitalRead(4));
     
@@ -81,4 +98,12 @@ function draw() {
 
 function mouseClicked() {
     connectFirmata(); //will not reconnect if already connected
+}
+
+function keyPressed() {
+  if (key == ' ') {
+    console.log("Start to play");
+    toneStartTime = millis();
+    tonePlayingNow = 0;
+  }
 }

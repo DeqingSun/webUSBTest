@@ -407,6 +407,20 @@ var ModifiedFirmata = function () {
         return 0;
     }
     
+    this.circuitPlaygroundPlayTone = function (freq, durationMs) {
+        var frequency_hz = freq & 0x3FFF
+        var f1 = frequency_hz & 0x7F
+        var f2 = frequency_hz >> 7
+        var duration_ms = durationMs & 0x3FFF
+        var d1 = duration_ms & 0x7F
+        var d2 = duration_ms >> 7
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x20, f1, f2, d1, d2, END_SYSEX]));
+    }
+
+    this.circuitPlaygroundStopTone = function (freq, durationMs) {
+        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x21, END_SYSEX]));
+    }
+    
 }
 
 /////////global////////
