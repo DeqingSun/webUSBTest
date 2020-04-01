@@ -84,6 +84,22 @@ var readCapacitiveTouchOnCPC = function(pin){
     }   
 }
 
+var readLightSensorOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return analogRead(5);
+    }else{
+        return;
+    }   
+}
+
+var readSoundSensorOnCPC = function(){
+    if (isBoardCircuitPlayground()){
+        return analogRead(4);
+    }else{
+        return;
+    }   
+}
+
 //resource on Circuit Playground Classic END
 
 var connectFirmata = function(){

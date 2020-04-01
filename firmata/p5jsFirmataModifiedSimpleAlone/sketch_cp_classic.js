@@ -72,6 +72,9 @@ function draw() {
     text("Left Button Pressed: "+(readLeftButtonOnCPC()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPC()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPC()?"Yes":"No "),10,180);
     
     text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPC(9),10,200);
+    text("Light Sensor value: "+readLightSensorOnCPC(),10,220);
+    text("Sound Sensor value: "+readSoundSensorOnCPC(),10,240);
+
     //console.log(digitalRead(4));
     
 }
