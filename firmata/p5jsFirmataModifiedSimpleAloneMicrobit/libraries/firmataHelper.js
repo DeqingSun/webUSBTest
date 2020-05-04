@@ -14,6 +14,22 @@ var digitalRead = function(pin){
     return top.modifiedFirmata.simpleReadDigital(pin);
 }
 
+var enableDisplay = function(flag){
+    // Enable or disable the display. When the display is disabled, the edge connector
+    // pins normall used by the display can be used for other I/O functions.
+    // Re-enabling the display (even when is already enabled) disables the light
+    // sensor which, when running monopolizes the A/D converter preventing all pins
+    // from being used for analog input. Requesting a light sensor value restarts
+    // the light sensor.
+    return top.modifiedFirmata.microbitEnableDisplay(flag);
+}
+
+var displayPlot = function(x, y, brightness) {
+    // Set the display pixel at x, y to the given brightness (0-255).
+    return top.modifiedFirmata.microbitDisplayPlot(x, y, brightness);
+}
+
+
 var servoWrite = function(pin, value){
     return top.modifiedFirmata.simpleWriteServo(pin, value);
 }

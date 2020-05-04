@@ -10,30 +10,51 @@ var ModifiedFirmata = function () {
     /**
      * constants
      */
+    
+// Firamata Channel Messages
 
-    var PIN_MODE = 0xF4
-        , REPORT_DIGITAL = 0xD0
-        , REPORT_ANALOG = 0xC0
-        , DIGITAL_MESSAGE = 0x90
-        , START_SYSEX = 0xF0
-        , END_SYSEX = 0xF7
-        , QUERY_FIRMWARE = 0x79
-        , REPORT_VERSION = 0xF9
-        , ANALOG_MESSAGE = 0xE0
-        , CAPABILITY_QUERY = 0x6B
-        , CAPABILITY_RESPONSE = 0x6C
-        , PIN_STATE_QUERY = 0x6D
-        , PIN_STATE_RESPONSE = 0x6E
-        , ANALOG_MAPPING_QUERY = 0x69
-        , ANALOG_MAPPING_RESPONSE = 0x6A
-        , I2C_REQUEST = 0x76
-        , I2C_REPLY = 0x77
-        , I2C_CONFIG = 0x78
-        , STRING_DATA = 0x71
-        , SYSTEM_RESET = 0xFF
-        , PULSE_OUT = 0x73
-        , PULSE_IN = 0x74;
+		this.STREAM_ANALOG				= 0xC0; // enable/disable streaming of an analog channel
+		this.STREAM_DIGITAL				= 0xD0; // enable/disable tracking of a digital port
+		this.ANALOG_UPDATE				= 0xE0; // analog channel update
+		this.DIGITAL_UPDATE				= 0x90; // digital port update
 
+		this.SYSEX_START				= 0xF0
+		this.SET_PIN_MODE				= 0xF4; // set pin mode
+		this.SET_DIGITAL_PIN			= 0xF5; // set pin value
+		this.SYSEX_END					= 0xF7
+		this.FIRMATA_VERSION			= 0xF9; // request/report Firmata protocol version
+		this.SYSTEM_RESET				= 0xFF; // reset Firmata
+
+		// Firamata Sysex Messages
+
+		this.EXTENDED_ANALOG_WRITE		= 0x6F; // analog write (PWM, Servo, etc) to any pin
+		this.REPORT_FIRMWARE			= 0x79; // request/report firmware version and name
+		this.SAMPLING_INTERVAL			= 0x7A; // set msecs between streamed analog samples
+
+		// BBC micro:bit Sysex Messages (0x01-0x0F)
+
+		this.MB_DISPLAY_CLEAR			= 0x01
+		this.MB_DISPLAY_SHOW			= 0x02
+		this.MB_DISPLAY_PLOT			= 0x03
+		this.MB_SCROLL_STRING			= 0x04
+		this.MB_SCROLL_INTEGER			= 0x05
+		this.MB_SET_TOUCH_MODE			= 0x06
+		this.MB_DISPLAY_ENABLE			= 0x07
+		// 0x08-0x0C reserved for additional micro:bit messages
+		this.MB_REPORT_EVENT			= 0x0D
+		this.MB_DEBUG_STRING			= 0x0E
+		this.MB_EXTENDED_SYSEX			= 0x0F; // allow for 128 additional micro:bit messages
+
+		// Firmata Pin Modes
+
+		this.DIGITAL_INPUT				= 0x00
+		this.DIGITAL_OUTPUT				= 0x01
+		this.ANALOG_INPUT				= 0x02
+		this.PWM						= 0x03
+		this.INPUT_PULLUP				= 0x0B
+		this.INPUT_PULLDOWN				= 0x0F; // micro:bit extension; not defined by Firmata
+    
+    
     var serialconnection = null;
 
     var analogLut = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
@@ -52,6 +73,10 @@ var ModifiedFirmata = function () {
 
     var simpleDigitalValue = [];
     var simpleAnalogValue = [];
+    
+    this.buttonAPressed = false;
+    this.buttonBPressed = false;
+    this.isScrolling = false;
 
 
     this.setSerialConnection = function (_serialconnection) {
@@ -124,7 +149,7 @@ var ModifiedFirmata = function () {
     this.pinMode = function (pin, mode) {
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].mode = mode;
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([PIN_MODE, pin, mode]));
+        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_PIN_MODE,pin,mode?1:0) );
     };
 
     this.digitalWrite = function (pin, value) {
@@ -132,12 +157,7 @@ var ModifiedFirmata = function () {
         var portValue = 0;
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].value = value;
-        for (var i = 0; i < 8; i++) {
-            if (this.pins[8 * port + i] != null && this.pins[8 * port + i].value) {
-                portValue |= (1 << i);
-            }
-        }
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F]));
+        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_DIGITAL_PIN,pin,value?1:0) );
     }
     this.analogWrite = function (pin, value) {
         if (this.pins[pin] == null) this.pins[pin] = {};
@@ -245,6 +265,16 @@ var ModifiedFirmata = function () {
             this.pinMode(pin, 4);
         }
         this.analogWrite(pin, value);
+    }
+    
+    this.microbitEnableDisplay = function(flag) {
+        var enable = flag ? 1 : 0;
+		if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SYSEX_START, this.MB_DISPLAY_ENABLE, enable, this.SYSEX_END) );    
+    }
+    
+    this.microbitDisplayPlot = function(x, y, brightness){
+        this.isScrolling = false;
+        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SYSEX_START, this.MB_DISPLAY_PLOT, x, y, (brightness / 2) & 0x7F, this.SYSEX_END) );    
     }
     
     this.circuitPlaygroundSetAccelStream = function (enableVal) {
@@ -384,18 +414,6 @@ var str2ab = function (str) {
             }
         });
     };
-
-    p5.WebusbFirmata.prototype.simpleWriteDigital = function (_pin, _level) {
-        modifiedFirmata.simpleWriteDigital(_pin, _level);
-    }
-
-    p5.WebusbFirmata.prototype.simpleReadAnalog = function (pinNumber) {
-        return modifiedFirmata.simpleReadAnalog(pinNumber);
-    };
-
-    p5.WebusbFirmata.prototype.simpleWriteServo = function (_pin, _value) {
-        modifiedFirmata.simpleWriteServo(_pin, _value);
-    }
 
     var createDAPLink = function(device){
         //console.log(device);
