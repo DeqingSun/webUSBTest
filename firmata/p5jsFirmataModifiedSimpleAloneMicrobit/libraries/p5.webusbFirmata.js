@@ -2,103 +2,8 @@
 var serial = {};
 
 var usbfiltersilters = [
-    {
-        'vendorId': 0x20A0
-        , 'productId': 0x4267
-    }, //Architectronics Funkey Funkey
-    {
-        'vendorId': 0x239a
-        , 'productId': 0x8011
-    }, //circuit playground classic
+    {vendorId: 0xD28}
 ];
-
-(function () {
-    'use strict';
-
-    serial.getPorts = function () {
-        return navigator.usb.getDevices().then(devices => {
-            return devices.map(device => new serial.Port(device));
-        });
-    };
-
-    serial.requestPort = function () {
-        return navigator.usb.requestDevice({
-            'filters': usbfiltersilters
-        }).then(
-            device => new serial.Port(device)
-        );
-    }
-
-    serial.Port = function (device) {
-        this.device_ = device;
-        this.interfaceNumber_ = 2; // original interface number of WebUSB Arduino demo
-        this.endpointIn_ = 5; // original in endpoint ID of WebUSB Arduino demo
-        this.endpointOut_ = 4; // original out endpoint ID of WebUSB Arduino demo
-    };
-
-    serial.Port.prototype.connect = function () {
-        let readLoop = () => {
-            this.device_.transferIn(this.endpointIn_, 64).then(result => {
-                this.onReceive(result.data);
-                readLoop();
-            }, error => {
-                this.onReceiveError(error);
-            });
-        };
-
-        return this.device_.open()
-            .then(() => {
-                if (this.device_.configuration === null) {
-                    return this.device_.selectConfiguration(1);
-                }
-            })
-            .then(() => {
-                var configurationInterfaces = this.device_.configuration.interfaces;
-                configurationInterfaces.forEach(element => {
-                    element.alternates.forEach(elementalt => {
-                        if (elementalt.interfaceClass == 0xff) {
-                            this.interfaceNumber_ = element.interfaceNumber;
-                            elementalt.endpoints.forEach(elementendpoint => {
-                                if (elementendpoint.direction == "out") {
-                                    this.endpointOut_ = elementendpoint.endpointNumber;
-                                }
-                                if (elementendpoint.direction == "in") {
-                                    this.endpointIn_ = elementendpoint.endpointNumber;
-                                }
-                            })
-                        }
-                    })
-                })
-            })
-            .then(() => this.device_.claimInterface(this.interfaceNumber_))
-            .then(() => this.device_.selectAlternateInterface(this.interfaceNumber_, 0))
-            .then(() => this.device_.controlTransferOut({
-                'requestType': 'class'
-                , 'recipient': 'interface'
-                , 'request': 0x22
-                , 'value': 0x01
-                , 'index': this.interfaceNumber_
-            }))
-            .then(() => {
-                readLoop();
-            });
-    };
-
-    serial.Port.prototype.disconnect = function () {
-        return this.device_.controlTransferOut({
-                'requestType': 'class'
-                , 'recipient': 'interface'
-                , 'request': 0x22
-                , 'value': 0x00
-                , 'index': this.interfaceNumber_
-            })
-            .then(() => this.device_.close());
-    };
-
-    serial.Port.prototype.send = function (data) {
-        return this.device_.transferOut(this.endpointOut_, data);
-    };
-})();
 
 //modified firmata
 var ModifiedFirmata = function () {
@@ -424,7 +329,7 @@ var ModifiedFirmata = function () {
 }
 
 /////////global////////
-var validPort = null;
+var validTarget = null;
 var modifiedFirmata = new ModifiedFirmata();
 
 /* Interprets an ArrayBuffer as UTF-8 encoded string data. */
@@ -467,14 +372,30 @@ var str2ab = function (str) {
 
     p5.WebusbFirmata = function () {
         var self = this;
+        
+        //check if there is paired device already
+        navigator.usb.getDevices()
+        .then(devices => {
+            if (devices.length > 0 ){
+                //use first device   
+                createDAPLink(devices[0]);
+            }else{
+                console.log('No devices found.');
+            }
+            //devices.map(device => new serial.Port(device));
+        });
+        
+        /*
+        
         serial.getPorts().then(ports => {
             if (ports.length == 0) {
                 console.log('No devices found.');
             } else {
                 validPort = ports[0];
                 connect();
+
             }
-        });
+        });*/
     };
 
     p5.WebusbFirmata.prototype.simpleWriteDigital = function (_pin, _level) {
@@ -489,44 +410,28 @@ var str2ab = function (str) {
         modifiedFirmata.simpleWriteServo(_pin, _value);
     }
 
-    var SerialConnection = function () {};
-
-    SerialConnection.prototype.send = function (msg) {
-        if (validPort) validPort.send(str2ab(msg));
-    };
-
-    SerialConnection.prototype.sendRaw = function (rawMsg) {
-        if (validPort) validPort.send(rawMsg.buffer);
-    };
-
-    var connection = new SerialConnection();
-
-    var connect = function () {
-        console.log('Connecting to ' + validPort.device_.productName + '...');
-        validPort.connect().then(() => {
-            console.log(validPort);
-            console.log('Connected.');
-            modifiedFirmata.setSerialConnection(connection);
-            validPort.onReceive = data => {
-                var bufView = new Uint8Array(data.buffer);
-                //console.log(bufView);
-                modifiedFirmata.recvNewData(bufView);
-            }
-            validPort.onReceiveError = error => {
-                console.log('Receive error: ' + error);
-            };
-        }, error => {
-            console.log('Connection error: ' + error);
+    var createDAPLink = function(device){
+        //console.log(device);
+        const transport = new DAPjs.WebUSB(device);
+        validTarget = new DAPjs.DAPLink(transport);
+        validTarget.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
+            modifiedFirmata.recvNewData(data);
         });
-    };
+
+        validTarget.connect()
+        .then(_ => validTarget.setSerialBaudrate(57600))
+        .then(_ => validTarget.getSerialBaudrate())
+        .then(_ => console.log('buad rate is: '+_))
+    }
 
     p5.WebusbFirmata.prototype.connect = function () {
-        if (validPort) { // do nothing
+        if (validTarget) { // do nothing
         } else {
-            serial.requestPort().then(selectedPort => {
-                validPort = selectedPort;
-                connect();
-            }).catch(error => {
+            navigator.usb.requestDevice({
+                'filters': usbfiltersilters
+            }).then(
+                device => createDAPLink(device)
+            ).catch(error => {
                 console.log('Connection error: ' + error);
             });
         }
