@@ -382,20 +382,7 @@ var str2ab = function (str) {
             }else{
                 console.log('No devices found.');
             }
-            //devices.map(device => new serial.Port(device));
         });
-        
-        /*
-        
-        serial.getPorts().then(ports => {
-            if (ports.length == 0) {
-                console.log('No devices found.');
-            } else {
-                validPort = ports[0];
-                connect();
-
-            }
-        });*/
     };
 
     p5.WebusbFirmata.prototype.simpleWriteDigital = function (_pin, _level) {
