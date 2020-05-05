@@ -15,7 +15,7 @@ function draw() {
         lastLEDTime = timeNow;
         if (Math.round(timeNow / 1000) & 1) { //alternatively
             displayPlot(0,0,255);
-            digitalWrite(0, true);
+            digitalWrite(0, true);  //external circuit may be needed to observe it
             io1circleColor = color(255, 255, 255);
         } else {
             displayPlot(0,0,0);

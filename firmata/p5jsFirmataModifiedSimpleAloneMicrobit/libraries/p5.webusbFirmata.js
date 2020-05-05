@@ -53,12 +53,6 @@ var ModifiedFirmata = function () {
 		this.PWM						= 0x03
 		this.INPUT_PULLUP				= 0x0B
 		this.INPUT_PULLDOWN				= 0x0F; // micro:bit extension; not defined by Firmata
-    
-    
-    var serialconnection = null;
-
-    var analogLut = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
-
 
     this.digitalCallBack = [];
     this.analogCallBack = [];
@@ -78,11 +72,6 @@ var ModifiedFirmata = function () {
     this.buttonBPressed = false;
     this.isScrolling = false;
 
-
-    this.setSerialConnection = function (_serialconnection) {
-        this.serialconnection = _serialconnection;
-    }
-
     this.recvNewData = function (data) {
         //console.log(data);
         for (var i = 0; i < data.length; i++) {
@@ -95,7 +84,7 @@ var ModifiedFirmata = function () {
     }
 
     this.checkReceivedData = function () {
-        
+        //console.log(this.receiveBuffer);
         if (this.receiveBuffer[this.bufferLen-29]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX) {
             if (this.receiveBuffer[this.bufferLen-28]==0x40 && this.receiveBuffer[this.bufferLen-27]==0x36){
                 this.accelStream = true;
@@ -149,7 +138,7 @@ var ModifiedFirmata = function () {
     this.pinMode = function (pin, mode) {
         if (this.pins[pin] == null) this.pins[pin] = {};
         this.pins[pin].mode = mode;
-        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_PIN_MODE,pin,mode?1:0) );
+        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_PIN_MODE,pin,mode) );
     };
 
     this.digitalWrite = function (pin, value) {
@@ -176,7 +165,8 @@ var ModifiedFirmata = function () {
     };
 
     this.setAnalogReport = function (pin, value) {
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([REPORT_ANALOG | (pin & 0x0F), value ? 1 : 0]));
+        if ((pin < 0) || (pin > 15)) return;
+        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.STREAM_ANALOG | pin, value ? 1 : 0) ); 
     };
 
     this.sendKeycode = function (keycode) {
@@ -190,9 +180,9 @@ var ModifiedFirmata = function () {
     };
 
     this.readAnalogPin = function (pin, analogCallBack) {
-        if ((this.serialconnection) && (pin < analogLut.length)) {
+        if ((validTarget) && (pin < 20)) {
+            this.pinMode(pin, 2, false);
             this.setAnalogReport(pin, true);
-            this.pinMode(analogLut[pin], 2);
             this.analogCallBack[pin] = analogCallBack;
         }
     }
@@ -243,13 +233,13 @@ var ModifiedFirmata = function () {
     }
     this.simpleReadAnalog = function (pin) {
         var pinValue = 0;
-        if (this.pins[analogLut[pin]] && this.pins[analogLut[pin]].mode == 2) {
+        if (this.pins[pin] && this.pins[pin].mode == 2) {
             if (simpleAnalogValue[pin] != null) {
                 pinValue = simpleAnalogValue[pin];
             }
         } else {
             this.readAnalogPin(pin, simpleAnalogCallBack);
-            if (this.serialconnection) console.log("set to analog");
+            if (validTarget) console.log("set to analog");
         }
         return pinValue;
     }
