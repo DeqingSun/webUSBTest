@@ -21,12 +21,12 @@ var enableDisplay = function(flag){
     // sensor which, when running monopolizes the A/D converter preventing all pins
     // from being used for analog input. Requesting a light sensor value restarts
     // the light sensor.
-    return top.modifiedFirmata.microbitEnableDisplay(flag);
+    return top.microbitFirmataClient.enableDisplay(flag);
 }
 
 var displayPlot = function(x, y, brightness) {
     // Set the display pixel at x, y to the given brightness (0-255).
-    return top.modifiedFirmata.microbitDisplayPlot(x, y, brightness);
+    return top.microbitFirmataClient.displayPlot(x, y, brightness);
 }
 
 

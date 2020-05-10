@@ -2,355 +2,497 @@
 var serial = {};
 
 var usbfiltersilters = [
-    {vendorId: 0xD28}
+    {
+        vendorId: 0xD28
+    }
 ];
 
 //modified firmata
-var ModifiedFirmata = function () {
-    /**
-     * constants
-     */
-    
-// Firamata Channel Messages
+var MicrobitFirmataClient = function () {
 
-		this.STREAM_ANALOG				= 0xC0; // enable/disable streaming of an analog channel
-		this.STREAM_DIGITAL				= 0xD0; // enable/disable tracking of a digital port
-		this.ANALOG_UPDATE				= 0xE0; // analog channel update
-		this.DIGITAL_UPDATE				= 0x90; // digital port update
+    this.inbuf = new Uint8Array(1000);
+    this.inbufCount = 0;
 
-		this.SYSEX_START				= 0xF0
-		this.SET_PIN_MODE				= 0xF4; // set pin mode
-		this.SET_DIGITAL_PIN			= 0xF5; // set pin value
-		this.SYSEX_END					= 0xF7
-		this.FIRMATA_VERSION			= 0xF9; // request/report Firmata protocol version
-		this.SYSTEM_RESET				= 0xFF; // reset Firmata
+    this.boardVersion = '';
+    this.firmataVersion = '';
+    this.firmwareVersion = '';
 
-		// Firamata Sysex Messages
-
-		this.EXTENDED_ANALOG_WRITE		= 0x6F; // analog write (PWM, Servo, etc) to any pin
-		this.REPORT_FIRMWARE			= 0x79; // request/report firmware version and name
-		this.SAMPLING_INTERVAL			= 0x7A; // set msecs between streamed analog samples
-
-		// BBC micro:bit Sysex Messages (0x01-0x0F)
-
-		this.MB_DISPLAY_CLEAR			= 0x01
-		this.MB_DISPLAY_SHOW			= 0x02
-		this.MB_DISPLAY_PLOT			= 0x03
-		this.MB_SCROLL_STRING			= 0x04
-		this.MB_SCROLL_INTEGER			= 0x05
-		this.MB_SET_TOUCH_MODE			= 0x06
-		this.MB_DISPLAY_ENABLE			= 0x07
-		// 0x08-0x0C reserved for additional micro:bit messages
-		this.MB_REPORT_EVENT			= 0x0D
-		this.MB_DEBUG_STRING			= 0x0E
-		this.MB_EXTENDED_SYSEX			= 0x0F; // allow for 128 additional micro:bit messages
-
-		// Firmata Pin Modes
-
-		this.DIGITAL_INPUT				= 0x00
-		this.DIGITAL_OUTPUT				= 0x01
-		this.ANALOG_INPUT				= 0x02
-		this.PWM						= 0x03
-		this.INPUT_PULLUP				= 0x0B
-		this.INPUT_PULLDOWN				= 0x0F; // micro:bit extension; not defined by Firmata
-
-    this.digitalCallBack = [];
-    this.analogCallBack = [];
-    this.pins = [];
-    this.analogPins = [];
-    this.receiveBuffer = Array(32).fill(0);
-    this.bufferLen = this.receiveBuffer.length;
-    this.accelStream = false;
-    this.accelVal = [0,0,0];
-    this.temperature = NaN;
-    this.capacitiveTouchValue = [];
-
-    var simpleDigitalValue = [];
-    var simpleAnalogValue = [];
-    
     this.buttonAPressed = false;
     this.buttonBPressed = false;
     this.isScrolling = false;
 
-    this.recvNewData = function (data) {
+    this.digitalInput = new Array(21).fill(false);
+    this.analogChannel = new Array(16).fill(0);
+    this.eventListeners = new Array();
+    this.updateListeners = new Array();
+
+    // statistics:
+    this.analogUpdateCount = 0;
+    this.channelUpdateCounts = new Array(16).fill(0);
+
+    // Firamata Channel Messages
+
+    this.STREAM_ANALOG = 0xC0; // enable/disable streaming of an analog channel
+    this.STREAM_DIGITAL = 0xD0; // enable/disable tracking of a digital port
+    this.ANALOG_UPDATE = 0xE0; // analog channel update
+    this.DIGITAL_UPDATE = 0x90; // digital port update
+
+    this.SYSEX_START = 0xF0
+    this.SET_PIN_MODE = 0xF4; // set pin mode
+    this.SET_DIGITAL_PIN = 0xF5; // set pin value
+    this.SYSEX_END = 0xF7
+    this.FIRMATA_VERSION = 0xF9; // request/report Firmata protocol version
+    this.SYSTEM_RESET = 0xFF; // reset Firmata
+
+    // Firamata Sysex Messages
+
+    this.EXTENDED_ANALOG_WRITE = 0x6F; // analog write (PWM, Servo, etc) to any pin
+    this.REPORT_FIRMWARE = 0x79; // request/report firmware version and name
+    this.SAMPLING_INTERVAL = 0x7A; // set msecs between streamed analog samples
+
+    // BBC micro:bit Sysex Messages (0x01-0x0F)
+
+    this.MB_DISPLAY_CLEAR = 0x01
+    this.MB_DISPLAY_SHOW = 0x02
+    this.MB_DISPLAY_PLOT = 0x03
+    this.MB_SCROLL_STRING = 0x04
+    this.MB_SCROLL_INTEGER = 0x05
+    this.MB_SET_TOUCH_MODE = 0x06
+    this.MB_DISPLAY_ENABLE = 0x07
+        // 0x08-0x0C reserved for additional micro:bit messages
+    this.MB_REPORT_EVENT = 0x0D
+    this.MB_DEBUG_STRING = 0x0E
+    this.MB_EXTENDED_SYSEX = 0x0F; // allow for 128 additional micro:bit messages
+
+    // Firmata Pin Modes
+
+    this.DIGITAL_INPUT = 0x00
+    this.DIGITAL_OUTPUT = 0x01
+    this.ANALOG_INPUT = 0x02
+    this.PWM = 0x03
+    this.INPUT_PULLUP = 0x0B
+    this.INPUT_PULLDOWN = 0x0F; // micro:bit extension; not defined by Firmata
+    this.INPUT_PULLDOWN = 0x0F; // micro:bit extension; not defined by Firmata
+
+    this.dataReceived = function (data) {
+        if ((this.inbufCount + data.length) < this.inbuf.length) {
+            this.inbuf.set(data, this.inbufCount);
+            this.inbufCount += data.length;
+            this.processFirmatMessages();
+        }
+    }
+
+    this.requestFirmataVersion = function () {
+        this.myPort_write([this.FIRMATA_VERSION, 0, 0]);
+    }
+
+    this.requestFirmwareVersion = function () {
+        this.myPort_write([this.SYSEX_START, this.REPORT_FIRMWARE, this.SYSEX_END]);
+    }
+
+    this.myPort_write = function (data) {
+        if (validTarget) validTarget.serialWrite(String.fromCharCode.apply(null, data))
         //console.log(data);
-        for (var i = 0; i < data.length; i++) {
-            //console.log(this.receiveBuffer);
-            this.receiveBuffer.shift();
-            this.receiveBuffer.push(data[i]);
-            this.checkReceivedData();
-        }
-        //console.log(this.receiveBuffer);
     }
 
-    this.checkReceivedData = function () {
-        //console.log(this.receiveBuffer);
-        if (this.receiveBuffer[this.bufferLen-29]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX) {
-            if (this.receiveBuffer[this.bufferLen-28]==0x40 && this.receiveBuffer[this.bufferLen-27]==0x36){
-                this.accelStream = true;
-                for (var i=0;i<3;i++){
-                    var floatBuffer = new ArrayBuffer(4);
-                    var floatView = new DataView(floatBuffer);
-                    for (var j=0;j<4;j++){
-                        var onebyte = (this.receiveBuffer[this.bufferLen-25+i*8+j*2]&0x7F) + ((this.receiveBuffer[this.bufferLen-25+i*8+j*2+1]&0x1)<<7);
-                        floatView.setUint8(3-j,onebyte);
-                    }
-                    this.accelVal[i]=floatView.getFloat32(0);
-                }        
+    // Internal: Parse Incoming Firmata Messages
+
+    this.processFirmatMessages = function () {
+        // Process and remove all complete Firmata messages in inbuf.
+
+        if (!this.inbufCount) return; // nothing received
+        var cmdStart = 0;
+        while (true) {
+            cmdStart = this.findCmdByte(cmdStart);
+            if (cmdStart < 0) {; // no more messages
+                this.inbufCount = 0;
+                return;
             }
-        }
-        
-        if (this.receiveBuffer[this.bufferLen-15]==START_SYSEX && this.receiveBuffer[this.bufferLen-1]==END_SYSEX){
-            if (this.receiveBuffer[this.bufferLen-14]==0x40 && this.receiveBuffer[this.bufferLen-13]==0x43){
-                var inputPin = (this.receiveBuffer[this.bufferLen-11] & 0x7F) | ((this.receiveBuffer[this.bufferLen-10] & 0x01) << 7);
-                var longBuffer = new ArrayBuffer(4);
-                var longView = new DataView(longBuffer);
-                for (var i=0;i<4;i++){
-                    var onebyte = (this.receiveBuffer[this.bufferLen-9+i*2]&0x7F) + ((this.receiveBuffer[this.bufferLen-9+i*2+1]&0x1)<<7);
-                    longView.setUint8(3-i,onebyte);
-                }
-                var sensorValue=longView.getUint32(0);
-                this.capacitiveTouchValue[inputPin]=sensorValue;
+            var skipBytes = this.dispatchCommand(cmdStart);
+            if (skipBytes < 0) {
+                // command at cmdStart is incomplete: remove processed messages and exit
+                if (0 == cmdStart) return; // cmd is already at start of inbuf
+                var remainingBytes = this.inbufCount - cmdStart;
+                this.inbuf.copyWithin(0, cmdStart, cmdStart + remainingBytes);
+                this.inbufCount = remainingBytes;
+                return;
             }
-        }
-
-        /*if (this.receiveBuffer[this.bufferLen-6]==START_SYSEX && this.receiveBuffer[this.bufferLen-5]==PIN_STATE_RESPONSE){
-            console.log(this.receiveBuffer);
-        }*/
-        
-        if ((this.receiveBuffer[this.bufferLen - 3] & 0xF0) == DIGITAL_MESSAGE) {
-            var port = this.receiveBuffer[this.bufferLen - 3] & 0x0F;
-            var portValue = this.receiveBuffer[this.bufferLen - 2] | (this.receiveBuffer[this.bufferLen - 1] << 7);
-            var binaryStr = portValue.toString(2);
-            binaryStr = "00000000".substr(binaryStr.length) + binaryStr;
-            for (var i = 0; i < 8; i++) {
-                if (this.digitalCallBack[i + port * 8] != null) this.digitalCallBack[i + port * 8](i + port * 8, (portValue & (1 << i)) != 0);
-            }
-            //console.log(portValue);
-        }
-        if ((this.receiveBuffer[this.bufferLen - 3] & 0xF0) == ANALOG_MESSAGE) {
-            var pin = this.receiveBuffer[this.bufferLen - 3] & 0x0F;
-            var pinValue = this.receiveBuffer[this.bufferLen - 2] | (this.receiveBuffer[this.bufferLen - 1] << 7);
-            if (this.analogCallBack[pin] != null) this.analogCallBack[pin](pin, pinValue);
+            cmdStart += skipBytes;
         }
     }
 
-    this.pinMode = function (pin, mode) {
-        if (this.pins[pin] == null) this.pins[pin] = {};
-        this.pins[pin].mode = mode;
-        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_PIN_MODE,pin,mode) );
-    };
-
-    this.digitalWrite = function (pin, value) {
-        var port = Math.floor(pin / 8);
-        var portValue = 0;
-        if (this.pins[pin] == null) this.pins[pin] = {};
-        this.pins[pin].value = value;
-        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SET_DIGITAL_PIN,pin,value?1:0) );
-    }
-    this.analogWrite = function (pin, value) {
-        if (this.pins[pin] == null) this.pins[pin] = {};
-        this.pins[pin].value = value;
-        if (pin >= 0 && pin <= 15) {
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F]));
+    this.findCmdByte = function (startIndex) {
+        for (var i = startIndex; i < this.inbufCount; i++) {
+            if (this.inbuf[i] & 0x80) return i;
         }
+        return -1;
     }
 
-    this.queryPinState = function (pin) {
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX]));
-    };
+    this.dispatchCommand = function (cmdStart) {
+        // Attempt to process the command starting at the given index in inbuf.
+        // If the command is incomplete, return -1.
+        // Otherwise, process it and return the number of bytes in the entire command.
 
-    this.setDigitalReport = function (port, value) {
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([REPORT_DIGITAL | (port & 0x0F), value ? 1 : 0]));
-    };
-
-    this.setAnalogReport = function (pin, value) {
-        if ((pin < 0) || (pin > 15)) return;
-        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.STREAM_ANALOG | pin, value ? 1 : 0) ); 
-    };
-
-    this.sendKeycode = function (keycode) {
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x0F, keycode, END_SYSEX]));
-    };
-
-    this.sendString = function (str) {
-        for (var i = 0, len = str.length; i < len; i++) {
-            this.sendKeycode(str.charCodeAt(i));
-        }
-    };
-
-    this.readAnalogPin = function (pin, analogCallBack) {
-        if ((validTarget) && (pin < 20)) {
-            this.pinMode(pin, 2, false);
-            this.setAnalogReport(pin, true);
-            this.analogCallBack[pin] = analogCallBack;
-        }
-    }
-
-    this.readDigitalPin = function (pin, digitalCallBack) {
-        this.pinMode(pin, 0);
-        this.setDigitalReport(Math.floor(pin / 8), true);
-        this.digitalCallBack[pin] = digitalCallBack;
-    }
-
-    this.writeDigitalPin = function (pin, level) {
-        this.pinMode(pin, 1);
-        this.digitalWrite(pin, level);
-    }
-
-    var simpleAnalogCallBack = function (pin, value) {
-        //var printMsg = "Analog Msg, Pin: " + pin + " PortValue: " + value;
-        simpleAnalogValue[pin] = value;
-    }
-
-    var simpleDigitalCallBack = function (pin, value) {
-        //var printMsg = "Digital Msg, pin: " + pin + " PortValue: " + value;
-        simpleDigitalValue[pin] = value;
-        //console.logsimpleDigitalValue);
-
-    }
-
-    this.simpleReadDigital = function (pin) {
-        var pinValue = false;
-        if (this.pins[pin] && this.pins[pin].mode == 0) {
-            if (simpleDigitalValue[pin] != null) {
-                pinValue = simpleDigitalValue[pin];
-            }
+        var cmdByte = this.inbuf[cmdStart];
+        var chanCmd = cmdByte & 0xF0;
+        var argBytes = 0;
+        var nextCmdIndex = this.findCmdByte(cmdStart + 1);
+        if (nextCmdIndex < 0) {; // no next command; current command may not be complete
+            if (this.SYSEX_START == cmdByte) return -1; // incomplete sysex
+            argBytes = this.inbufCount - (cmdStart + 1);
+            var argsNeeded = 2;
+            if (0xFF == cmdByte) argsNeeded = 0;
+            if ((0xC0 == chanCmd) || (0xD0 == chanCmd)) argsNeeded = 1;
+            if (argBytes < argsNeeded) return -1;
         } else {
-            this.pinMode(pin, 0);
-            this.setDigitalReport(Math.floor(pin / 8), true);
-            this.digitalCallBack[pin] = simpleDigitalCallBack;
-            //console.log("set to input");
+            argBytes = nextCmdIndex - (cmdStart + 1);
         }
-        return pinValue;
-    }
-    this.simpleWriteDigital = function (pin, value) {
-        if (this.pins[pin] && this.pins[pin].mode == 1) {} else {
-            this.pinMode(pin, 1);
-            //console.log("set to output");
-        }
-        this.digitalWrite(pin, value);
-    }
-    this.simpleReadAnalog = function (pin) {
-        var pinValue = 0;
-        if (this.pins[pin] && this.pins[pin].mode == 2) {
-            if (simpleAnalogValue[pin] != null) {
-                pinValue = simpleAnalogValue[pin];
+
+        if (this.SYSEX_START == cmdByte) {; // system exclusive message: SYSEX_START ...data ... SYSEX_END
+            if (this.SYSEX_END != this.inbuf[cmdStart + argBytes + 1]) {
+                // last byte is not SYSEX_END; skip this message
+                return argBytes + 1; // skip cmd + argBytes
             }
-        } else {
-            this.readAnalogPin(pin, simpleAnalogCallBack);
-            if (validTarget) console.log("set to analog");
+            this.dispatchSysexCommand(cmdStart + 1, argBytes - 1);
+            return argBytes + 2; // skip cmd, arg bytes, and final SYSEX_END
         }
-        return pinValue;
+
+        var chan = cmdByte & 0xF;
+        var arg1 = (argBytes > 0) ? this.inbuf[cmdStart + 1] : 0;
+        var arg2 = (argBytes > 1) ? this.inbuf[cmdStart + 2] : 0;
+
+        if (this.DIGITAL_UPDATE == chanCmd) this.receivedDigitalUpdate(chan, (arg1 | (arg2 << 7)));
+        if (this.ANALOG_UPDATE == chanCmd) this.receivedAnalogUpdate(chan, (arg1 | (arg2 << 7)));
+        if (this.FIRMATA_VERSION == cmdByte) this.receivedFirmataVersion(arg1, arg2);
+
+        return argBytes + 1;
     }
-    this.simpleWriteAnalog = function (pin, value) {
-        if (this.pins[pin] && this.pins[pin].mode == 3) {} else {
-            this.pinMode(pin, 3);
+
+    this.dispatchSysexCommand = function (sysexStart, argBytes) {
+        var sysexCmd = this.inbuf[sysexStart];
+        switch (sysexCmd) {
+        case this.MB_REPORT_EVENT:
+            this.receivedEvent(sysexStart, argBytes);
+            break;
+        case this.MB_DEBUG_STRING:
+            var buf = this.inbuf.slice(sysexStart + 1, sysexStart + 1 + argBytes);
+            console.log('DB: ' + new TextDecoder().decode(buf));
+            break;
+        case this.REPORT_FIRMWARE:
+            this.receivedFirmwareVersion(sysexStart, argBytes);
+            break;
         }
-        this.analogWrite(pin, value);
     }
-    this.simpleWriteServo = function (pin, value) {
-        var pinValue = 0;
-        if (this.pins[pin] && this.pins[pin].mode == 4) {} else {
-            this.pinMode(pin, 4);
+
+    // Internal: Handling Messages from the micro:bit
+
+    this.receivedFirmataVersion = function (major, minor) {
+        this.firmataVersion = 'Firmata Protocol ' + major + '.' + minor;
+    }
+
+    this.receivedFirmwareVersion = function (sysexStart, argBytes) {
+        var major = this.inbuf[sysexStart + 1];
+        var minor = this.inbuf[sysexStart + 2];
+        var utf8Bytes = new Array();
+        for (var i = sysexStart + 3; i <= argBytes; i += 2) {
+            utf8Bytes.push(this.inbuf[i] | (this.inbuf[i + 1] << 7));
         }
-        this.analogWrite(pin, value);
+        var firmwareName = new TextDecoder().decode(Buffer.from(utf8Bytes));
+        this.firmwareVersion = firmwareName + ' ' + major + '.' + minor;
     }
-    
-    this.microbitEnableDisplay = function(flag) {
-        var enable = flag ? 1 : 0;
-		if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SYSEX_START, this.MB_DISPLAY_ENABLE, enable, this.SYSEX_END) );    
+
+    this.receivedDigitalUpdate = function (chan, pinMask) {
+        var pinNum = 8 * chan;
+        for (var i = 0; i < 8; i++) {
+            var isOn = ((pinMask & (1 << i)) != 0);
+            if (pinNum < 21) this.digitalInput[pinNum] = isOn;
+            pinNum++;
+        }
     }
-    
-    this.microbitDisplayPlot = function(x, y, brightness){
+
+    this.receivedAnalogUpdate = function (chan, value) {
+        if (value > 8191) value = value - 16384; // negative value (14-bits 2-completement)
+        this.analogChannel[chan] = value;
+
+        // update stats:
+        this.analogUpdateCount++;
+        this.channelUpdateCounts[chan]++;
+
+        for (var f of this.updateListeners) f.call(); // notify all update listeners
+    }
+
+    this.receivedEvent = function (sysexStart, argBytes) {
+        const MICROBIT_ID_BUTTON_A = 1;
+        const MICROBIT_ID_BUTTON_B = 2;
+        const MICROBIT_BUTTON_EVT_DOWN = 1;
+        const MICROBIT_BUTTON_EVT_UP = 2;
+
+        const MICROBIT_ID_DISPLAY = 6;
+        const MICROBIT_DISPLAY_EVT_ANIMATION_COMPLETE = 1;
+
+        var sourceID =
+            (this.inbuf[sysexStart + 3] << 14) |
+            (this.inbuf[sysexStart + 2] << 7) |
+            this.inbuf[sysexStart + 1];
+        var eventID =
+            (this.inbuf[sysexStart + 6] << 14) |
+            (this.inbuf[sysexStart + 5] << 7) |
+            this.inbuf[sysexStart + 4];
+
+        if (sourceID == MICROBIT_ID_BUTTON_A) {
+            if (eventID == MICROBIT_BUTTON_EVT_DOWN) this.buttonAPressed = true;
+            if (eventID == MICROBIT_BUTTON_EVT_UP) this.buttonAPressed = false;
+        }
+        if (sourceID == MICROBIT_ID_BUTTON_B) {
+            if (eventID == MICROBIT_BUTTON_EVT_DOWN) this.buttonBPressed = true;
+            if (eventID == MICROBIT_BUTTON_EVT_UP) this.buttonBPressed = false;
+        }
+        if ((sourceID == MICROBIT_ID_DISPLAY) &&
+            (eventID == MICROBIT_DISPLAY_EVT_ANIMATION_COMPLETE)) {
+            this.isScrolling = false;
+        }
+
+        // notify event listeners
+        for (var f of this.eventListeners) f.call(null, sourceID, eventID);
+    }
+
+    // Display Commands
+
+    this.enableDisplay = function (enableFlag) {
+        // Enable or disable the display. When the display is disabled, the edge connector
+        // pins normall used by the display can be used for other I/O functions.
+        // Re-enabling the display (even when is already enabled) disables the light
+        // sensor which, when running monopolizes the A/D converter preventing all pins
+        // from being used for analog input. Requesting a light sensor value restarts
+        // the light sensor.
+
+        var enable = enableFlag ? 1 : 0;
+        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_ENABLE, enable, this.SYSEX_END]);
+    }
+
+    this.displayClear = function () {
+        // Clear the display and stop any ongoing animation.
+
         this.isScrolling = false;
-        if (validTarget) validTarget.serialWrite( String.fromCharCode(this.SYSEX_START, this.MB_DISPLAY_PLOT, x, y, (brightness / 2) & 0x7F, this.SYSEX_END) );    
-    }
-    
-    this.circuitPlaygroundSetAccelStream = function (enableVal) {
-        if (enableVal && !this.accelStream){
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3A, END_SYSEX]));
-            //this.accelStream = true; //do it in receive event
-        }else if (!enableVal && this.accelStream){
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x3B, END_SYSEX]));
-            this.accelStream = false;
-        }
-    };
-    
-    this.circuitPlaygroundSimpleReadAccel = function(){
-        this.circuitPlaygroundSetAccelStream(true);
-        return this.accelVal;
-    }
-    this.circuitPlaygroundSimpleReadTemperature = function(){
-        var analog0Value = this.simpleReadAnalog(0);
-        if (analog0Value != 0){
-            THERM_SERIES_OHMS  = 10000.0  // Resistor value in series with thermistor.
-            THERM_NOMINAL_OHMS = 10000.0  // Thermistor resistance at 25 degrees C.
-            THERM_NOMIMAL_C    = 25.0     // Thermistor temperature at nominal resistance.
-            THERM_BETA         = 3950.0   // Thermistor beta coefficient.
-            resistance = ((1023.0 * THERM_SERIES_OHMS)/analog0Value)
-            resistance -= THERM_SERIES_OHMS
-            // Now apply Steinhart-Hart equation.
-            steinhart = resistance / THERM_NOMINAL_OHMS
-            steinhart = Math.log(steinhart)
-            steinhart /= THERM_BETA
-            steinhart += 1.0 / (THERM_NOMIMAL_C + 273.15)
-            steinhart = 1.0 / steinhart
-            steinhart -= 273.15
-            this.temperature = Math.round(steinhart * 10) / 10
-        }
-        return this.temperature;
-    }
-    
-    this.circuitPlaygroundSetOneNeoPixel = function (r, g, b, index) {
-        r &= 0xFF;
-        g &= 0xFF;
-        b &= 0xFF;
-        index &= 0x7F;
-        var b1 = r >> 1;
-        var b2 = ((r & 0x01) << 6) | (g >> 2);
-        var b3 = ((g & 0x03) << 5) | (b >> 3);
-        var b4 = (b & 0x07) << 4;
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x10, index, b1, b2, b3, b4, END_SYSEX]));
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x11, END_SYSEX]));
-    };
-    
-    this.circuitPlaygroundReadCapacitiveTouch = function (pin) {
-        var validPins = [0, 1, 2, 3, 6, 9, 10, 12];
-        if(validPins. indexOf(pin) == -1){
-            return 0;
-        }
-        if (this.pins[pin] == null) this.pins[pin] = {};
-        if (this.pins[pin].capStreaming && this.pins[pin].capStreaming == true) {
-            if (this.capacitiveTouchValue[pin]){
-                return this.capacitiveTouchValue[pin];    
-            }
-        } else {
-            this.pins[pin].capStreaming = true;
-            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x41, pin & 0x7F, END_SYSEX]));
-        }
-        return 0;
-    }
-    
-    this.circuitPlaygroundPlayTone = function (freq, durationMs) {
-        var frequency_hz = freq & 0x3FFF
-        var f1 = frequency_hz & 0x7F
-        var f2 = frequency_hz >> 7
-        var duration_ms = durationMs & 0x3FFF
-        var d1 = duration_ms & 0x7F
-        var d2 = duration_ms >> 7
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x20, f1, f2, d1, d2, END_SYSEX]));
+        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_CLEAR, this.SYSEX_END]);
     }
 
-    this.circuitPlaygroundStopTone = function (freq, durationMs) {
-        if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x21, END_SYSEX]));
+    this.displayShow = function (useGrayscale, pixels) {
+        // Display the given 5x5 image on the display. If useGrayscale is true, pixel values
+        // are brightness values in the range 0-255. Otherwise, a zero pixel value means off
+        // and >0 means on. Pixels is an Array of 5-element Arrays.
+
+        this.isScrolling = false;
+        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_SHOW]);
+        this.myPort_write([useGrayscale ? 1 : 0]);
+        for (var y = 0; y < 5; y++) {
+            for (var x = 0; x < 5; x++) {
+                var pix = pixels[y][x];
+                if (pix > 1) pix = pix / 2; // transmit as 7-bits
+                this.myPort_write([pix & 0x7F]);
+            }
+        }
+        this.myPort_write([this.SYSEX_END]);
     }
-    
+
+    this.displayPlot = function (x, y, brightness) {
+        // Set the display pixel at x, y to the given brightness (0-255).
+
+        this.isScrolling = false;
+        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_PLOT
+
+            
+            , x, y, (brightness / 2) & 0x7F
+
+            
+            , this.SYSEX_END]);
+    }
+
+    this.scrollString = function (s, delay) {
+        // Scroll the given string across the display with the given delay.
+        // Omit the delay parameter to use the default scroll speed.
+        // The maximum string length is 100 characters.
+
+        this.isScrolling = true;
+        if (null == delay) delay = 120;
+        if (s.length > 100) s = s.slice(0, 100);
+        var buf = new TextEncoder().encode(s);
+        this.myPort_write([this.SYSEX_START, this.MB_SCROLL_STRING, delay]);
+        for (var i = 0; i < buf.length; i++) {
+            var b = buf[i];
+            this.myPort_write([b & 0x7F, (b >> 7) & 0x7F]);
+        }
+        this.myPort_write([this.SYSEX_END]);
+    }
+
+    this.scrollInteger = function (n, delay) {
+        // Scroll the given integer value across the display with the given delay.
+        // Omit the delay parameter to use the default scroll speed.
+        // Note: 32-bit integer is transmitted as five 7-bit data bytes.
+
+        this.isScrolling = true;
+        if (null == delay) delay = 120;
+        this.myPort_write([this.SYSEX_START, this.MB_SCROLL_INTEGER
+
+            
+            , delay
+
+            
+            , n & 0x7F, (n >> 7) & 0x7F, (n >> 14) & 0x7F, (n >> 21) & 0x7F, (n >> 28) & 0x7F
+
+            
+            , this.SYSEX_END]);
+    }
+
+
+    // Pin and Sensor Channel Commands
+
+    this.setPinMode = function (pinNum, mode) {
+        if ((pinNum < 0) || (pinNum > 20)) return;
+        this.myPort_write([this.SET_PIN_MODE, pinNum, mode]);
+    }
+
+    this.trackDigitalPin = function (pinNum, optionalMode) {
+        // Start tracking the given pin as a digital input.
+        // The optional mode can be 0 (no pullup or pulldown), 1 (pullup resistor),
+        // or 2 (pulldown resistor). It defaults to 0.
+
+        if ((pinNum < 0) || (pinNum > 20)) return;
+        var port = pinNum >> 3;
+        var mode = this.DIGITAL_INPUT; // default
+        if (0 == optionalMode) mode = this.DIGITAL_INPUT;
+        if (1 == optionalMode) mode = this.INPUT_PULLUP;
+        if (2 == optionalMode) mode = this.INPUT_PULLDOWN;
+        this.myPort_write([this.SET_PIN_MODE, pinNum, mode]);
+        this.myPort_write([this.STREAM_DIGITAL | port, 1]);
+    }
+
+    this.stopTrackingDigitalPins = function () {
+        // Stop tracking all digital pins.
+
+        for (var i = 0; i < 3; i++) {
+            this.myPort_write([this.STREAM_DIGITAL | i, 0]);
+        }
+    }
+
+    this.clearChannelData = function () {
+        // Reset analog channel values and statistics.
+
+        this.analogChannel.fill(0);
+        this.analogUpdateCount = 0; // statistic: total number of analog updates received
+        this.channelUpdateCounts.fill(0); // statistic: number of updates received for each analog channel
+    }
+
+    this.streamAnalogChannel = function (chan) {
+        // Start streaming the given analog channel.
+
+        if ((chan < 0) || (chan > 15)) return;
+        this.myPort_write([this.STREAM_ANALOG | chan, 1]);
+    }
+
+    this.stopStreamingAnalogChannel = function (chan) {
+        // Stop streaming the given analog channel.
+
+        if ((chan < 0) || (chan > 15)) return;
+        this.myPort_write([this.STREAM_ANALOG | chan, 0]);
+    }
+
+    this.setAnalogSamplingInterval = function (samplingMSecs) {
+        // Set the number of milliseconds (1-16383) between analog channel updates.
+
+        if ((samplingMSecs < 1) || (samplingMSecs > 16383)) return;
+        this.myPort_write([this.SYSEX_START, this.SAMPLING_INTERVAL
+			
+            , samplingMSecs & 0x7F, (samplingMSecs >> 7) & 0x7F
+			
+            , this.SYSEX_END]);
+    }
+
+    this.enableLightSensor = function () {
+        // Enable the light sensor.
+        // Note: When running, the light sensor monopolizes the A/D converter, preventing
+        // use of the analog input pins. Thus, the light sensor is disabled by default.
+        // This method can be used to enable it.
+
+        this.myPort_write([this.SET_PIN_MODE, 11, this.ANALOG_INPUT]);
+    }
+
+    this.setTouchMode = function (pinNum, touchModeOn) {
+        // Turn touch mode on/off for a pin. Touch mode is only supported for pins 0-2).
+        // When touch mode is on, the pin generates events as if it were a button.
+
+        if ((pinNum < 0) || (pinNum > 2)) return;
+        var mode = touchModeOn ? 1 : 0;
+        this.myPort_write([this.SYSEX_START, this.MB_SET_TOUCH_MODE
+			
+            , pinNum, mode
+			
+            , this.SYSEX_END]);
+    }
+
+    // Event/Update Listeners
+
+    this.addFirmataEventListener = function (eventListenerFunction) {
+        // Add a listener function to handle micro:bit DAL events.
+        // The function arguments are the sourceID and eventID (both numbers).
+
+        this.eventListeners.push(eventListenerFunction);
+    }
+
+    this.addFirmataUpdateListener = function (updateListenerFunction) {
+        // Add a listener function (with no arguments) called when sensor or pin updates arrive.
+
+        this.updateListeners.push(updateListenerFunction);
+    }
+
+    this.removeAllFirmataListeners = function () {
+        // Remove all event and update listeners. Used by test suite.
+
+        this.eventListeners = [];
+        this.updateListeners = [];
+    }
+
+    // Digital and Analog Outputs
+
+    this.setDigitalOutput = function (pinNum, turnOn) {
+        // Make the given pin an output and turn it off (0 volts) or on (3.3 volts)
+        // based on the boolean turnOn parameter.
+        // This can be used, for example, to turn an LED on or off.
+
+        if ((pinNum < 0) || (pinNum > 20)) return;
+        this.myPort_write([this.SET_PIN_MODE, pinNum, this.DIGITAL_OUTPUT]);
+        this.myPort_write([this.SET_DIGITAL_PIN, pinNum, (turnOn ? 1 : 0)]);
+    }
+
+    this.setAnalogOutput = function (pinNum, level) {
+        // Output a simulated analog voltage level on the given pin,
+        // where level (0-1023) maps to a simulated voltage of 0 to 3.3 volts.
+        // Since micro:bit pins can only be on or off, the voltage level is simulated
+        // using "pulse width modulation" (PWM). That is, the pin is turned and off
+        // rapidly, using the level to determine what fraction of time the pin is on.
+        // PWM can be used, for example, to control the brightness of an LED.
+
+        if ((pinNum < 0) || (pinNum > 20)) return;
+        this.myPort_write([this.SET_PIN_MODE, pinNum, this.PWM]);
+        this.myPort_write([this.SYSEX_START, this.EXTENDED_ANALOG_WRITE
+			
+            , pinNum, (level & 0x7F), ((level >> 7) & 0x7F)
+			
+            , this.SYSEX_END]);
+    }
+
+    this.turnOffOutput = function (pinNum) {
+        // Turn off either the digital or analog output of the given pin.
+        // (The pin reverts to being an input pin with no pullup.)
+
+        if ((pinNum < 0) || (pinNum > 20)) return;
+        this.myPort_write([this.SET_PIN_MODE, pinNum, this.DIGITAL_INPUT]);
+    }
 }
 
 /////////global////////
 var validTarget = null;
-var modifiedFirmata = new ModifiedFirmata();
+var microbitFirmataClient = new MicrobitFirmataClient();
 
 /* Interprets an ArrayBuffer as UTF-8 encoded string data. */
 var ab2str = function (buf) {
@@ -392,35 +534,51 @@ var str2ab = function (str) {
 
     p5.WebusbFirmata = function () {
         var self = this;
-        
+
         //check if there is paired device already
         navigator.usb.getDevices()
-        .then(devices => {
-            if (devices.length > 0 ){
-                //use first device   
-                createDAPLink(devices[0]);
-            }else{
-                console.log('No devices found.');
-            }
-        });
+            .then(devices => {
+                if (devices.length > 0) {
+                    //use first device   
+                    createDAPLink(devices[0]);
+                } else {
+                    console.log('No devices found.');
+                }
+            });
     };
 
-    var createDAPLink = function(device){
+    var createDAPLink = function (device) {
         //console.log(device);
         const transport = new DAPjs.WebUSB(device);
         validTarget = new DAPjs.DAPLink(transport);
-        validTarget.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
-            modifiedFirmata.recvNewData(data);
-        });
+
+        async function ownSerialPoll() {
+            while (true) {
+                const serialData = await validTarget.serialRead();
+                if (serialData != undefined) {
+                    var bufView = new Uint8Array(serialData);
+                    microbitFirmataClient.dataReceived(bufView);
+                }
+                await new Promise(resolve => setTimeout(resolve, 50));
+            };
+        }
 
         validTarget.connect()
-        .then(_ => validTarget.setSerialBaudrate(57600))
-        .then(_ => validTarget.getSerialBaudrate())
-        .then(_ => console.log('buad rate is: '+_))
+            .then(_ => validTarget.setSerialBaudrate(57600))
+            .then(_ => validTarget.getSerialBaudrate())
+            .then(_ => console.log('baud rate is: ' + _))
+            .then(_ => ownSerialPoll())
+            //.then(_ => validTarget.startSerialRead()) //startSerialRead uses decode and it conflict with raw ascii
+            //.then(_ => validTarget.reset())
     }
 
     p5.WebusbFirmata.prototype.connect = function () {
-        if (validTarget) { // do nothing
+        if (validTarget) {
+            //reconnect
+            if (validTarget.connected) {
+                //      validTarget.reconnect()
+                //   .then(_ => validTarget.connect())
+            }
         } else {
             navigator.usb.requestDevice({
                 'filters': usbfiltersilters
