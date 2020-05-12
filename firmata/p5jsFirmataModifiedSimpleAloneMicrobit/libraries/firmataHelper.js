@@ -5,11 +5,11 @@ var analogRead = function(pin){
     if (top.microbitFirmataClient.firmataVersion != ''){
         if (microbitPinMode[pin]!=top.microbitFirmataClient.ANALOG_INPUT){
             top.microbitFirmataClient.setPinMode(pin, top.microbitFirmataClient.ANALOG_INPUT)
-            microbitPinMode[pin]!=top.microbitFirmataClient.ANALOG_INPUT
+            microbitPinMode[pin]=top.microbitFirmataClient.ANALOG_INPUT
         }
         if (microbitStreamAnalogChannel[pin]!=true){
             top.microbitFirmataClient.streamAnalogChannel(pin)
-            microbitStreamAnalogChannel[pin]!=true
+            microbitStreamAnalogChannel[pin]=true
         }
     }
     return top.microbitFirmataClient.analogChannel[pin];
