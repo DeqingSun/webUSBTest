@@ -1,17 +1,34 @@
+microbitPinMode = new Array(16).fill(0);
+microbitStreamAnalogChannel = new Array(16).fill(false);
+
 var analogRead = function(pin){
-    return top.modifiedFirmata.simpleReadAnalog(pin);
+    if (top.microbitFirmataClient.firmataVersion != ''){
+        if (microbitPinMode[pin]!=top.microbitFirmataClient.ANALOG_INPUT){
+            top.microbitFirmataClient.setPinMode(pin, top.microbitFirmataClient.ANALOG_INPUT)
+            microbitPinMode[pin]!=top.microbitFirmataClient.ANALOG_INPUT
+        }
+        if (microbitStreamAnalogChannel[pin]!=true){
+            top.microbitFirmataClient.streamAnalogChannel(pin)
+            microbitStreamAnalogChannel[pin]!=true
+        }
+    }
+    return top.microbitFirmataClient.analogChannel[pin];
 }
 
 var analogWrite = function(pin, value){
-    return top.modifiedFirmata.simpleWriteAnalog(pin, value);
+    top.microbitFirmataClient.setPinMode(pin, top.microbitFirmataClient.ANALOG_INPUT)
+    top.microbitFirmataClient.streamAnalogChannel(pin)
+    
+    
+    //return top.modifiedFirmata.simpleWriteAnalog(pin, value);
 }
 
 var digitalWrite = function(pin, value){
-    return top.modifiedFirmata.simpleWriteDigital(pin, value);
+    //return top.modifiedFirmata.simpleWriteDigital(pin, value);
 }
 
 var digitalRead = function(pin){
-    return top.modifiedFirmata.simpleReadDigital(pin);
+    //return top.modifiedFirmata.simpleReadDigital(pin);
 }
 
 var enableDisplay = function(flag){

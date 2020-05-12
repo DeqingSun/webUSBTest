@@ -15,11 +15,11 @@ function draw() {
         lastLEDTime = timeNow;
         if (Math.round(timeNow / 1000) & 1) { //alternatively
             displayPlot(0,0,255);
-            digitalWrite(0, true);  //external circuit may be needed to observe it
+          //  digitalWrite(0, true);  //external circuit may be needed to observe it
             io1circleColor = color(255, 255, 255);
         } else {
             displayPlot(0,0,0);
-            digitalWrite(0, false);
+          //  digitalWrite(0, false);
             io1circleColor = color(0, 0, 0);
         }
     }
@@ -27,10 +27,11 @@ function draw() {
     fill(io1circleColor);
     ellipse(30, 50, 30, 30);
     
-    /*sliderValue = analogRead(0);
+    
+    sliderValue = analogRead(0);
     //also map analog 1 value to D0
     if ((analogRead(1)) > 512) {
-        digitalWrite(1, true);
+        digitalWrite(1, true);  //external circuit may be needed to observe it
     } else {
         digitalWrite(1, false);
     }
@@ -41,7 +42,7 @@ function draw() {
     fill(io1circleColor);
     ellipse(30, 50, 30, 30);
     fill(0);
-    rect(10, 100, sliderValue / 2, 10);*/
+    rect(10, 100, sliderValue / 2, 10);
 }
 
 function mouseClicked() {

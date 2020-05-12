@@ -75,6 +75,7 @@ var MicrobitFirmataClient = function () {
     this.INPUT_PULLDOWN = 0x0F; // micro:bit extension; not defined by Firmata
 
     this.dataReceived = function (data) {
+        //console.log(data)
         if ((this.inbufCount + data.length) < this.inbuf.length) {
             this.inbuf.set(data, this.inbufCount);
             this.inbufCount += data.length;
@@ -559,15 +560,25 @@ var str2ab = function (str) {
                     var bufView = new Uint8Array(serialData);
                     microbitFirmataClient.dataReceived(bufView);
                 }
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 30));
             };
+        }
+        
+        async function checkFirmataVersionBootup() {
+            while (microbitFirmataClient.firmataVersion == '') {
+                //console.log('checkFirmataVersionBootup ')
+                microbitFirmataClient.requestFirmataVersion();
+                await new Promise(resolve => setTimeout(resolve, 20));
+            };
+            console.log('checkFirmataVersion OK')
         }
 
         validTarget.connect()
             .then(_ => validTarget.setSerialBaudrate(57600))
             .then(_ => validTarget.getSerialBaudrate())
             .then(_ => console.log('baud rate is: ' + _))
-            .then(_ => ownSerialPoll())
+            .then(_ => setTimeout(ownSerialPoll, 0))
+            .then(_ => setTimeout(checkFirmataVersionBootup, 50))
             //.then(_ => validTarget.startSerialRead()) //startSerialRead uses decode and it conflict with raw ascii
             //.then(_ => validTarget.reset())
     }
