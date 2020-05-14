@@ -43,6 +43,7 @@ function draw() {
     ellipse(30, 50, 30, 30);
     fill(0);
     rect(10, 100, sliderValue / 2, 10);
+    text("Button A "+(getButtonAPressed()?"Pressed":"        ") + " Button B "+(getButtonBPressed()?"Pressed":"        "), 10, 130);
 }
 
 function mouseClicked() {

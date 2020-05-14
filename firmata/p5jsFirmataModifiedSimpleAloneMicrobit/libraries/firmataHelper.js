@@ -81,6 +81,13 @@ var scrollInteger = function (n, delay) {
     return top.microbitFirmataClient.scrollInteger(n, delay);
 }
 
+var getButtonAPressed = function(){
+    return top.microbitFirmataClient.buttonAPressed;
+}
+
+var getButtonBPressed = function(){
+    return top.microbitFirmataClient.buttonBPressed;
+}
 
 //resource on Circuit Playground Classic END
 

@@ -568,7 +568,7 @@ var str2ab = function (str) {
             while (microbitFirmataClient.firmataVersion == '') {
                 //console.log('checkFirmataVersionBootup ')
                 microbitFirmataClient.requestFirmataVersion();
-                await new Promise(resolve => setTimeout(resolve, 20));
+                await new Promise(resolve => setTimeout(resolve, 10));
             };
             console.log('checkFirmataVersion OK')
         }
