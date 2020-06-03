@@ -31,6 +31,9 @@ var accelerometerRead = function (channel) {
     return analogRead(8+channel);
 }
 
+var compassRead = function (channel) {
+    return analogRead(13+channel);
+}
 
 var digitalWrite = function (pin, value) {
     if (top.microbitFirmataClient.firmataVersion != '') {

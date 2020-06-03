@@ -50,6 +50,10 @@ function draw() {
     accelerometerY = accelerometerRead(1);
     accelerometerZ = accelerometerRead(2);
     text("Accelerometer data , x: "+(accelerometerX/1000.0) + "g, y: "+(accelerometerY/1000.0) + "g, z: "+(accelerometerZ/1000.0) + "g", 10, 190);
+    compassX = compassRead(0);
+    compassY = compassRead(1);
+    compassZ = compassRead(2);
+    text("Compass raw data in nano Tesla, x: "+(compassX) + "nT, y: "+(compassY) + "nT, z: "+(compassZ) + "nT", 10, 220);
 }
 
 function mouseClicked() {
