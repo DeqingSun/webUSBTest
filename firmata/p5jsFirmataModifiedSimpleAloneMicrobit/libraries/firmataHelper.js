@@ -23,6 +23,15 @@ var analogWrite = function (pin, value) {
     return;
 }
 
+var temperatureRead = function (pin) {
+    return analogRead(12);
+}
+
+var accelerometerRead = function (channel) {
+    return analogRead(8+channel);
+}
+
+
 var digitalWrite = function (pin, value) {
     if (top.microbitFirmataClient.firmataVersion != '') {
         top.microbitFirmataClient.setDigitalOutput(pin, value);

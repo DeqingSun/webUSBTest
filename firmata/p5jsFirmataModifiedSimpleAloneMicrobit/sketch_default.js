@@ -44,6 +44,12 @@ function draw() {
     fill(0);
     rect(10, 100, sliderValue / 2, 10);
     text("Button A "+(getButtonAPressed()?"Pressed":"        ") + " Button B "+(getButtonBPressed()?"Pressed":"        "), 10, 130);
+    temperature = temperatureRead();    //temperature sensor in its processor
+    text("Temperature on CPU is "+temperature + " Celsius", 10, 160);
+    accelerometerX = accelerometerRead(0);
+    accelerometerY = accelerometerRead(1);
+    accelerometerZ = accelerometerRead(2);
+    text("Accelerometer data , x: "+(accelerometerX/1000.0) + "g, y: "+(accelerometerY/1000.0) + "g, z: "+(accelerometerZ/1000.0) + "g", 10, 190);
 }
 
 function mouseClicked() {
