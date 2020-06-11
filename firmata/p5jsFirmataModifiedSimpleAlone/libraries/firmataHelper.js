@@ -40,7 +40,7 @@ var readTemperatureOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundSimpleReadTemperature();
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -48,7 +48,7 @@ var readAccelOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundSimpleReadAccel();
     }else{
-        return;
+        return [0,0,0];
     }   
 }
 
@@ -56,7 +56,7 @@ var readLeftButtonOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return digitalRead(4);
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -64,7 +64,7 @@ var readRightButtonOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return digitalRead(19);
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -72,7 +72,7 @@ var readSwitchButtonOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return digitalRead(21);
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -80,7 +80,7 @@ var readCapacitiveTouchOnCPC = function(pin){
     if (isBoardCircuitPlayground()){
         return top.modifiedFirmata.circuitPlaygroundReadCapacitiveTouch(pin);
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -88,7 +88,7 @@ var readLightSensorOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return analogRead(5);
     }else{
-        return;
+        return 0;
     }   
 }
 
@@ -96,7 +96,7 @@ var readSoundSensorOnCPC = function(){
     if (isBoardCircuitPlayground()){
         return analogRead(4);
     }else{
-        return;
+        return 0;
     }   
 }
 
