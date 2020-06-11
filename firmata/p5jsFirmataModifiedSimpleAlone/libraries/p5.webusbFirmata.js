@@ -84,8 +84,11 @@ var usbfiltersilters = [
                 })
             })
             .then(() => this.device_.claimInterface(this.interfaceNumber_))
-            .then(() => this.device_.selectAlternateInterface(this.interfaceNumber_, 0))
-            .then(() => this.device_.controlTransferOut({
+            .then(() => {
+                if (this.device_.productName!="Circuit Playground Express"){
+                    return this.device_.selectAlternateInterface(this.interfaceNumber_, 0)
+                }
+            }).then(() => this.device_.controlTransferOut({
                 'requestType': 'class'
                 , 'recipient': 'interface'
                 , 'request': 0x22
