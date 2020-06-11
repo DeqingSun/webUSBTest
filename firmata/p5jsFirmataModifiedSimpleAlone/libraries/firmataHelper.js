@@ -23,7 +23,7 @@ var servoWrite = function(pin, value){
 var isBoardCircuitPlayground = function(){
     var isCircuitPlayground = false;
     try {
-        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground");
+        isCircuitPlayground = (top.validPort.device_.productName=="Circuit Playground") || (top.validPort.device_.productName=="Circuit Playground Express");
     } catch (e) {};
     return isCircuitPlayground;
 }
