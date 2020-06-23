@@ -1,11 +1,172 @@
 //serial code
-var serial = {};
+var dapLinkSerial = {};
+var usbfilters = [{
+    'vendorId': 0xD28
+        }]; //daplink
+var validPort = null;
 
-var usbfiltersilters = [
-    {
-        vendorId: 0xD28
+(function () {
+    'use strict';
+
+    const DAPLinkSerial_READ_SETTINGS = 0x81;
+    const DAPLinkSerial_WRITE_SETTINGS = 0x82;
+    const DAPLinkSerial_READ = 0x83;
+    const DAPLinkSerial_WRITE = 0x84;
+
+    const GET_REPORT = 0x01;
+    const SET_REPORT = 0x09;
+    const OUT_REPORT = 0x200;
+    const IN_REPORT = 0x100;
+
+    dapLinkSerial.getPorts = async function () {
+        var devices = await navigator.usb.getDevices();
+        return devices.map(device => new dapLinkSerial.Port(device));
+    };
+
+    dapLinkSerial.requestPort = async function () {
+        var device = await navigator.usb.requestDevice({
+            'filters': usbfilters
+        });
+        return new dapLinkSerial.Port(device);
     }
-];
+
+    dapLinkSerial.Port = function (device) {
+        this.device_ = device;
+        this.interfaceNumber_ = undefined;
+        this.endpointIn_ = undefined;
+        this.endpointOut_ = undefined;
+        this.packetSize = 64;
+    };
+
+    dapLinkSerial.Port.prototype.connect = async function () {
+        /*let readLoop = () => {
+            this.device_.transferIn(this.endpointIn_, 64).then(result => {
+                this.onReceive(result.data);
+                readLoop();
+            }, error => {
+                this.onReceiveError(error);
+            });
+        };*/
+
+        await this.device_.open();
+        if (this.device_.configuration === null) {
+            await this.device_.selectConfiguration(1);
+        }
+        var configurationInterfaces = this.device_.configuration.interfaces;
+        //find interface with Class #0xFF (vendor specified), if multiple exists, the last one will be used.
+        configurationInterfaces.forEach(element => {
+            element.alternates.forEach(elementalt => {
+                if (elementalt.interfaceClass == 0xff) {
+                    this.interfaceNumber_ = element.interfaceNumber;
+                    elementalt.endpoints.forEach(elementendpoint => {
+                        if (elementendpoint.direction == "out") {
+                            this.endpointOut_ = elementendpoint.endpointNumber;
+                        }
+                        if (elementendpoint.direction == "in") {
+                            this.endpointIn_ = elementendpoint.endpointNumber;
+                        }
+                    })
+                }
+            })
+        })
+
+        await this.device_.claimInterface(this.interfaceNumber_)
+
+        await this.setSerialBaud(57600)
+
+        var baudrate = await this.getSerialBaud()
+        console.log("baudrate is set to " + baudrate)
+
+        return;
+    };
+
+    dapLinkSerial.Port.prototype.disconnect = async function () {
+        return (await this.device_.close());
+    };
+
+    dapLinkSerial.Port.prototype.write = async function (buffer) {
+        if (this.interfaceNumber_ === undefined) {
+            throw new Error('No device opened');
+        }
+
+        if (this.endpointOut_) {
+            // Use endpoint if it exists
+            return (await this.device_.transferOut(this.endpointOut_, buffer));
+        } else {
+            // Fallback to using control transfer
+            return (await this.device_.controlTransferOut({
+                requestType: 'class'
+                , recipient: 'interface'
+                , request: SET_REPORT
+                , value: OUT_REPORT
+                , index: this.interfaceNumber_
+            }, buffer));
+        }
+        return;
+    }
+
+    dapLinkSerial.Port.prototype.read = async function () {
+        if (this.interfaceNumber_ === undefined) {
+            throw new Error('No device opened');
+        }
+
+        let result;
+
+        if (this.endpointIn_) {
+            // Use endpoint if it exists
+            result = await this.device_.transferIn(this.endpointIn_, this.packetSize);
+        } else {
+            // Fallback to using control transfer
+            result = await this.device_.controlTransferIn({
+                    requestType: 'class'
+                    , recipient: 'interface'
+                    , request: GET_REPORT
+                    , value: IN_REPORT
+                    , index: this.interfaceNumber_
+                }
+                , this.packetSize
+            );
+        }
+        return result.data;
+    }
+
+
+    dapLinkSerial.Port.prototype.sendSerialArray = async function (arrayData) {
+        arrayData.unshift(arrayData.length);
+        arrayData.unshift(DAPLinkSerial_WRITE);
+        return (await this.write(new Uint8Array(arrayData)).buffer);
+    }
+
+    dapLinkSerial.Port.prototype.readSerialArray = async function () {
+        var arrayData = [DAPLinkSerial_READ];
+        await this.write(new Uint8Array(arrayData)).buffer;
+        var result = await this.read()
+        var resultBuf = result.buffer;
+        if (resultBuf.byteLength>2){
+            if (result.getUint8(0)==DAPLinkSerial_READ){
+                var recvLength = result.getUint8(1);
+                const offset = 2;
+                return (new Uint8Array(resultBuf.slice(offset, offset + recvLength)))
+            }
+        }
+        return null;
+    }
+
+    dapLinkSerial.Port.prototype.setSerialBaud = async function (baud) {
+        var arrayData = [DAPLinkSerial_WRITE_SETTINGS, (baud >> 0) & 0xFF, (baud >> 8) & 0xFF, (baud >> 16) & 0xFF, (baud >> 24) & 0xFF];
+        await this.write(new Uint8Array(arrayData)).buffer;
+        var result = await this.read()
+        return (result);
+    }
+
+    dapLinkSerial.Port.prototype.getSerialBaud = async function () {
+        var arrayData = [DAPLinkSerial_READ_SETTINGS];
+        await this.write(new Uint8Array(arrayData)).buffer
+        var result = await this.read()
+        return (result.getUint32(1, true));
+    }
+
+})();
 
 //modified firmata
 var MicrobitFirmataClient = function () {
@@ -75,7 +236,7 @@ var MicrobitFirmataClient = function () {
     this.INPUT_PULLDOWN = 0x0F; // micro:bit extension; not defined by Firmata
 
     this.dataReceived = function (data) {
-        //console.log(data)
+        console.log(data)
         if ((this.inbufCount + data.length) < this.inbuf.length) {
             this.inbuf.set(data, this.inbufCount);
             this.inbufCount += data.length;
@@ -531,21 +692,42 @@ var str2ab = function (str) {
     //                         p5.WebusbFirmata
     // =============================================================================
 
+    var connect = async function () {
+        console.log('Connecting to ' + validPort.device_.productName + '...');
+        try {
+            await validPort.connect();
+            console.log(validPort);
+            console.log('Connected.');
+        } catch (err) {
+            console.log('Connection error: ' + err);
+        }
+    };
 
+    async function initFunc() {
+        ports = await dapLinkSerial.getPorts();
+        if (ports.length == 0) {
+            console.log('No devices found.');
+        } else {
+            validPort = ports[0];
+            connect();
+        }
+    }
+
+    async function connectDAPLink() {
+        if (validPort) { // do nothing
+        } else {
+            try {
+                validPort = await dapLinkSerial.requestPort()
+                connect();
+            } catch (err) {
+                console.log('Connection error: ' + err);
+            }
+        }
+    }
 
     p5.WebusbFirmata = function () {
         var self = this;
-
-        //check if there is paired device already
-        navigator.usb.getDevices()
-            .then(devices => {
-                if (devices.length > 0) {
-                    //use first device   
-                    createDAPLink(devices[0]);
-                } else {
-                    console.log('No devices found.');
-                }
-            });
+        initFunc();
     };
 
     var createDAPLink = function (device) {
@@ -556,6 +738,7 @@ var str2ab = function (str) {
         async function ownSerialPoll() {
             while (true) {
                 const serialData = await validTarget.serialRead();
+                console.log(serialData)
                 if (serialData != undefined) {
                     var bufView = new Uint8Array(serialData);
                     microbitFirmataClient.dataReceived(bufView);
@@ -567,7 +750,7 @@ var str2ab = function (str) {
         async function checkFirmataVersionBootup() {
             while (microbitFirmataClient.firmataVersion == '') {
                 //console.log('checkFirmataVersionBootup ')
-                microbitFirmataClient.requestFirmataVersion();
+                microbitFirmataClient.requestFirmataVersion();  //F9
                 await new Promise(resolve => setTimeout(resolve, 10));
             };
             console.log('checkFirmataVersion OK')
@@ -578,27 +761,13 @@ var str2ab = function (str) {
             .then(_ => validTarget.getSerialBaudrate())
             .then(_ => console.log('baud rate is: ' + _))
             .then(_ => setTimeout(ownSerialPoll, 0))
-            .then(_ => setTimeout(checkFirmataVersionBootup, 50))
+            .then(_ => setTimeout(checkFirmataVersionBootup, 1000))
             //.then(_ => validTarget.startSerialRead()) //startSerialRead uses decode and it conflict with raw ascii
             //.then(_ => validTarget.reset())
     }
 
     p5.WebusbFirmata.prototype.connect = function () {
-        if (validTarget) {
-            //reconnect
-            if (validTarget.connected) {
-                //      validTarget.reconnect()
-                //   .then(_ => validTarget.connect())
-            }
-        } else {
-            navigator.usb.requestDevice({
-                'filters': usbfiltersilters
-            }).then(
-                device => createDAPLink(device)
-            ).catch(error => {
-                console.log('Connection error: ' + error);
-            });
-        }
+        connectDAPLink();
     }
 
 
