@@ -71,6 +71,11 @@ var validPort = null;
                 }
             })
         })
+        
+        if (!this.interfaceNumber_){
+            throw "WEBUSB not found, maybe your bootloader is old."
+        }
+        
         console.log("DEBUG","claimInterface",this.interfaceNumber_)
         await this.device_.claimInterface(this.interfaceNumber_)
         console.log("DEBUG","claimedInterface",this.interfaceNumber_)
