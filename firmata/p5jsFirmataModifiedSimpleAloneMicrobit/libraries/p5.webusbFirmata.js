@@ -236,7 +236,7 @@ var MicrobitFirmataClient = function () {
     this.INPUT_PULLDOWN = 0x0F; // micro:bit extension; not defined by Firmata
 
     this.dataReceived = function (data) {
-        console.log(data)
+        //console.log(data)
         if ((this.inbufCount + data.length) < this.inbuf.length) {
             this.inbuf.set(data, this.inbufCount);
             this.inbufCount += data.length;
@@ -253,8 +253,8 @@ var MicrobitFirmataClient = function () {
     }
 
     this.myPort_write = function (data) {
-        if (validTarget) validTarget.serialWrite(String.fromCharCode.apply(null, data))
-            //console.log(data);
+        if (validPort && validPort.interfaceNumber_!=undefined) validPort.sendSerialArray(data)
+        //    console.log(data);
     }
 
     // Internal: Parse Incoming Firmata Messages
@@ -461,15 +461,7 @@ var MicrobitFirmataClient = function () {
         // Set the display pixel at x, y to the given brightness (0-255).
 
         this.isScrolling = false;
-        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_PLOT
-
-
-            
-            , x, y, (brightness / 2) & 0x7F
-
-
-            
-            , this.SYSEX_END]);
+        this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_PLOT, x, y, (brightness / 2) & 0x7F, this.SYSEX_END]);
     }
 
     this.scrollString = function (s, delay) {
@@ -496,19 +488,7 @@ var MicrobitFirmataClient = function () {
 
         this.isScrolling = true;
         if (null == delay) delay = 120;
-        this.myPort_write([this.SYSEX_START, this.MB_SCROLL_INTEGER
-
-
-            
-            , delay
-
-
-            
-            , n & 0x7F, (n >> 7) & 0x7F, (n >> 14) & 0x7F, (n >> 21) & 0x7F, (n >> 28) & 0x7F
-
-
-            
-            , this.SYSEX_END]);
+        this.myPort_write([this.SYSEX_START, this.MB_SCROLL_INTEGER, delay, n & 0x7F, (n >> 7) & 0x7F, (n >> 14) & 0x7F, (n >> 21) & 0x7F, (n >> 28) & 0x7F, this.SYSEX_END]);
     }
 
 
@@ -568,13 +548,7 @@ var MicrobitFirmataClient = function () {
         // Set the number of milliseconds (1-16383) between analog channel updates.
 
         if ((samplingMSecs < 1) || (samplingMSecs > 16383)) return;
-        this.myPort_write([this.SYSEX_START, this.SAMPLING_INTERVAL
-
-            
-            , samplingMSecs & 0x7F, (samplingMSecs >> 7) & 0x7F
-
-            
-            , this.SYSEX_END]);
+        this.myPort_write([this.SYSEX_START, this.SAMPLING_INTERVAL, samplingMSecs & 0x7F, (samplingMSecs >> 7) & 0x7F, this.SYSEX_END]);
     }
 
     this.enableLightSensor = function () {
@@ -592,13 +566,7 @@ var MicrobitFirmataClient = function () {
 
         if ((pinNum < 0) || (pinNum > 2)) return;
         var mode = touchModeOn ? 1 : 0;
-        this.myPort_write([this.SYSEX_START, this.MB_SET_TOUCH_MODE
-
-            
-            , pinNum, mode
-
-            
-            , this.SYSEX_END]);
+        this.myPort_write([this.SYSEX_START, this.MB_SET_TOUCH_MODE, pinNum, mode, this.SYSEX_END]);
     }
 
     // Event/Update Listeners
@@ -645,13 +613,7 @@ var MicrobitFirmataClient = function () {
 
         if ((pinNum < 0) || (pinNum > 20)) return;
         this.myPort_write([this.SET_PIN_MODE, pinNum, this.PWM]);
-        this.myPort_write([this.SYSEX_START, this.EXTENDED_ANALOG_WRITE
-
-            
-            , pinNum, (level & 0x7F), ((level >> 7) & 0x7F)
-
-            
-            , this.SYSEX_END]);
+        this.myPort_write([this.SYSEX_START, this.EXTENDED_ANALOG_WRITE, pinNum, (level & 0x7F), ((level >> 7) & 0x7F), this.SYSEX_END]);
     }
 
     this.turnOffOutput = function (pinNum) {
@@ -664,7 +626,6 @@ var MicrobitFirmataClient = function () {
 }
 
 /////////global////////
-var validTarget = null;
 var microbitFirmataClient = new MicrobitFirmataClient();
 
 /* Interprets an ArrayBuffer as UTF-8 encoded string data. */
@@ -709,6 +670,9 @@ var str2ab = function (str) {
             await validPort.connect();
             console.log(validPort);
             console.log('Connected.');
+            await setTimeout(ownSerialPoll, 0)
+            await setTimeout(checkFirmataVersionBootup, 1000)
+
         } catch (err) {
             console.log('Connection error: ' + err);
         }
@@ -737,50 +701,29 @@ var str2ab = function (str) {
     }
 
     async function ownSerialPoll() {
-
-
-
-        /*while (true) {
-            const serialData = await validTarget.serialRead();
-            console.log(serialData)
-            if (serialData != undefined) {
-                var bufView = new Uint8Array(serialData);
-                microbitFirmataClient.dataReceived(bufView);
+        while (true) {
+            const serialData = await validPort.readSerialArray();
+            if (serialData != null && serialData.length > 0) {
+                //console.log(serialData)
+                microbitFirmataClient.dataReceived(serialData);
             }
             await new Promise(resolve => setTimeout(resolve, 30));
-        };*/
+        };
+    }
+
+    async function checkFirmataVersionBootup() {
+        while (microbitFirmataClient.firmataVersion == '') {
+            console.log('checkFirmataVersionBootup ')
+            microbitFirmataClient.requestFirmataVersion(); //F9
+            await new Promise(resolve => setTimeout(resolve, 50));
+        };
+        console.log('checkFirmataVersion OK')
     }
 
     p5.WebusbFirmata = function () {
         var self = this;
         initFunc();
     };
-
-    var createDAPLink = function (device) {
-        //console.log(device);
-        const transport = new DAPjs.WebUSB(device);
-        validTarget = new DAPjs.DAPLink(transport);
-
-
-
-        async function checkFirmataVersionBootup() {
-            while (microbitFirmataClient.firmataVersion == '') {
-                //console.log('checkFirmataVersionBootup ')
-                microbitFirmataClient.requestFirmataVersion(); //F9
-                await new Promise(resolve => setTimeout(resolve, 10));
-            };
-            console.log('checkFirmataVersion OK')
-        }
-
-        validTarget.connect()
-            .then(_ => validTarget.setSerialBaudrate(57600))
-            .then(_ => validTarget.getSerialBaudrate())
-            .then(_ => console.log('baud rate is: ' + _))
-            .then(_ => setTimeout(ownSerialPoll, 0))
-            .then(_ => setTimeout(checkFirmataVersionBootup, 1000))
-            //.then(_ => validTarget.startSerialRead()) //startSerialRead uses decode and it conflict with raw ascii
-            //.then(_ => validTarget.reset())
-    }
 
     p5.WebusbFirmata.prototype.connect = function () {
         connectDAPLink();
