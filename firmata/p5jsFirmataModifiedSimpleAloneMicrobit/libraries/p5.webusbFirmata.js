@@ -55,7 +55,9 @@ var validPort = null;
         var configurationInterfaces = this.device_.configuration.interfaces;
         //find interface with Class #0xFF (vendor specified), if multiple exists, the last one will be used.
         configurationInterfaces.forEach(element => {
+            console.log("DEBUG","iteration interface",element.interfaceNumber)
             element.alternates.forEach(elementalt => {
+                console.log("DEBUG","iteration alternates",elementalt)
                 if (elementalt.interfaceClass == 0xff) {
                     this.interfaceNumber_ = element.interfaceNumber;
                     elementalt.endpoints.forEach(elementendpoint => {
@@ -69,8 +71,9 @@ var validPort = null;
                 }
             })
         })
-
+        console.log("DEBUG","claimInterface",this.interfaceNumber_)
         await this.device_.claimInterface(this.interfaceNumber_)
+        console.log("DEBUG","claimedInterface",this.interfaceNumber_)
 
         await this.setSerialBaud(57600)
 
