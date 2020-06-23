@@ -142,8 +142,8 @@ var validPort = null;
         await this.write(new Uint8Array(arrayData)).buffer;
         var result = await this.read()
         var resultBuf = result.buffer;
-        if (resultBuf.byteLength>2){
-            if (result.getUint8(0)==DAPLinkSerial_READ){
+        if (resultBuf.byteLength > 2) {
+            if (result.getUint8(0) == DAPLinkSerial_READ) {
                 var recvLength = result.getUint8(1);
                 const offset = 2;
                 return (new Uint8Array(resultBuf.slice(offset, offset + recvLength)))
@@ -254,7 +254,7 @@ var MicrobitFirmataClient = function () {
 
     this.myPort_write = function (data) {
         if (validTarget) validTarget.serialWrite(String.fromCharCode.apply(null, data))
-        //console.log(data);
+            //console.log(data);
     }
 
     // Internal: Parse Incoming Firmata Messages
@@ -463,8 +463,10 @@ var MicrobitFirmataClient = function () {
         this.isScrolling = false;
         this.myPort_write([this.SYSEX_START, this.MB_DISPLAY_PLOT
 
+
             
             , x, y, (brightness / 2) & 0x7F
+
 
             
             , this.SYSEX_END]);
@@ -496,11 +498,14 @@ var MicrobitFirmataClient = function () {
         if (null == delay) delay = 120;
         this.myPort_write([this.SYSEX_START, this.MB_SCROLL_INTEGER
 
+
             
             , delay
 
+
             
             , n & 0x7F, (n >> 7) & 0x7F, (n >> 14) & 0x7F, (n >> 21) & 0x7F, (n >> 28) & 0x7F
+
 
             
             , this.SYSEX_END]);
@@ -564,9 +569,11 @@ var MicrobitFirmataClient = function () {
 
         if ((samplingMSecs < 1) || (samplingMSecs > 16383)) return;
         this.myPort_write([this.SYSEX_START, this.SAMPLING_INTERVAL
-			
+
+            
             , samplingMSecs & 0x7F, (samplingMSecs >> 7) & 0x7F
-			
+
+            
             , this.SYSEX_END]);
     }
 
@@ -586,9 +593,11 @@ var MicrobitFirmataClient = function () {
         if ((pinNum < 0) || (pinNum > 2)) return;
         var mode = touchModeOn ? 1 : 0;
         this.myPort_write([this.SYSEX_START, this.MB_SET_TOUCH_MODE
-			
+
+            
             , pinNum, mode
-			
+
+            
             , this.SYSEX_END]);
     }
 
@@ -637,9 +646,11 @@ var MicrobitFirmataClient = function () {
         if ((pinNum < 0) || (pinNum > 20)) return;
         this.myPort_write([this.SET_PIN_MODE, pinNum, this.PWM]);
         this.myPort_write([this.SYSEX_START, this.EXTENDED_ANALOG_WRITE
-			
+
+            
             , pinNum, (level & 0x7F), ((level >> 7) & 0x7F)
-			
+
+            
             , this.SYSEX_END]);
     }
 
@@ -725,6 +736,21 @@ var str2ab = function (str) {
         }
     }
 
+    async function ownSerialPoll() {
+
+
+
+        /*while (true) {
+            const serialData = await validTarget.serialRead();
+            console.log(serialData)
+            if (serialData != undefined) {
+                var bufView = new Uint8Array(serialData);
+                microbitFirmataClient.dataReceived(bufView);
+            }
+            await new Promise(resolve => setTimeout(resolve, 30));
+        };*/
+    }
+
     p5.WebusbFirmata = function () {
         var self = this;
         initFunc();
@@ -735,22 +761,12 @@ var str2ab = function (str) {
         const transport = new DAPjs.WebUSB(device);
         validTarget = new DAPjs.DAPLink(transport);
 
-        async function ownSerialPoll() {
-            while (true) {
-                const serialData = await validTarget.serialRead();
-                console.log(serialData)
-                if (serialData != undefined) {
-                    var bufView = new Uint8Array(serialData);
-                    microbitFirmataClient.dataReceived(bufView);
-                }
-                await new Promise(resolve => setTimeout(resolve, 30));
-            };
-        }
-        
+
+
         async function checkFirmataVersionBootup() {
             while (microbitFirmataClient.firmataVersion == '') {
                 //console.log('checkFirmataVersionBootup ')
-                microbitFirmataClient.requestFirmataVersion();  //F9
+                microbitFirmataClient.requestFirmataVersion(); //F9
                 await new Promise(resolve => setTimeout(resolve, 10));
             };
             console.log('checkFirmataVersion OK')
