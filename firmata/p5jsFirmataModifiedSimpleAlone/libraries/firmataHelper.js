@@ -120,17 +120,65 @@ var stopToneOnCPC = function(){
 
 //resource on Circuit Playground Express
 
-var CPX_Pin = {
-    5:8,
+var CPX_analog_Pin = {
+    8:5,
+    9:0,
     0:11,
+    1:7,
+    2:9,
+    3:10,
+    4:4,
+    5:5,
+    6:6,
+    7:7,
 };
 
+var analogReadCPX = function(pin){
+    return analogRead(CPX_analog_Pin[pin]);
+}
+
+var neoPixelWriteOnCPX = function(_r, _g, _b, _index){
+    return neoPixelWriteOnCPC(_r, _g, _b, _index)
+}
+
 var readTemperatureOnCPX = function(){
-    if (isBoardCircuitPlayground()){
-        return top.modifiedFirmata.circuitPlaygroundSimpleReadTemperature(0);
-    }else{
-        return 0;
-    }   
+    return readTemperatureOnCPC();
+}
+
+var readAccelOnCPX = function(){
+    return readAccelOnCPC();
+}
+
+var readLeftButtonOnCPX = function(){
+    return readLeftButtonOnCPC();
+}
+
+var readRightButtonOnCPX = function(){
+    return readRightButtonOnCPC();
+}
+
+var readSwitchButtonOnCPX = function(){
+    return readSwitchButtonOnCPC(); 
+}
+
+var readCapacitiveTouchOnCPX = function(pin){
+    return readCapacitiveTouchOnCPC(pin);
+}
+
+var readLightSensorOnCPX = function(){
+    return readLightSensorOnCPC();
+}
+
+var readSoundSensorOnCPX = function(){
+    return readSoundSensorOnCPC();
+}
+
+var playToneOnCPX = function(freq, durationMs = 0){
+    return playToneOnCPC(freq, durationMs);
+}
+
+var stopToneOnCPX = function(){
+    return stopToneOnCPC()
 }
 
 //resource on Circuit Playground Express END

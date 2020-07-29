@@ -29,15 +29,15 @@ function draw() {
         switch(roundSeconds % 3){ //r g b
             case 0:
                 firstNeoPixelColor = color(255, 0, 0);
-                neoPixelWriteOnCPC(25,0,0,0);
+                neoPixelWriteOnCPX(25,0,0,0);
                 break;
             case 1:
                 firstNeoPixelColor = color(0, 255, 0);
-                neoPixelWriteOnCPC(0,25,0,0);
+                neoPixelWriteOnCPX(0,25,0,0);
                 break;
             case 2:
                 firstNeoPixelColor = color(0, 0, 255);
-                neoPixelWriteOnCPC(0,0,25,0);
+                neoPixelWriteOnCPX(0,0,25,0);
                 break;
 
         }
@@ -46,28 +46,28 @@ function draw() {
     if (tonePlayingNow>=0){
         var lapsedTime = millis()-toneStartTime;
         if (tonePlayingNow == 0){
-            playToneOnCPC(262,100); //Do for 100mS
+            playToneOnCPX(262,100); //Do for 100mS
             tonePlayingNow = 1;
         }else if(tonePlayingNow == 1 && lapsedTime>=500){
-            playToneOnCPC(294,200); //Re for 200mS
+            playToneOnCPX(294,200); //Re for 200mS
             tonePlayingNow = 2;
         }else if(tonePlayingNow == 2 && lapsedTime>=1000){
-            playToneOnCPC(330); //Mi forever until stopped
+            playToneOnCPX(330); //Mi forever until stopped
             tonePlayingNow = 3;
         }else if(tonePlayingNow == 3 && lapsedTime>=1500){
-            stopToneOnCPC();
+            stopToneOnCPX();
             tonePlayingNow = -1;
         }
     }
     
     var temperature = readTemperatureOnCPX();
-    analog0Value = analogRead(CPX_Pin[0]);
+    analog0Value = analogReadCPX(0);
     
     fill(0);
     text("IO 13", 10, 30);
     text("NeoPixel 0", 100, 30);
     
-    var accelerationArray = readAccelOnCPC();
+    var accelerationArray = readAccelOnCPX();
 
     text("Temperature: " + temperature, 10, 90);
     text("Read IO A0: " + analog0Value , 10, 110);
@@ -85,11 +85,11 @@ function draw() {
     text("y: " + Math.round(accelerationArray[1] * 100) / 100, 70, 160);
     text("z: " + Math.round(accelerationArray[2] * 100) / 100, 130, 160);
     
-    text("Left Button Pressed: "+(readLeftButtonOnCPC()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPC()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPC()?"Yes":"No "),10,180);
+    text("Left Button Pressed: "+(readLeftButtonOnCPX()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPX()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPX()?"Yes":"No "),10,180);
     
-    text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPC(9),10,200);
-    text("Light Sensor value: "+readLightSensorOnCPC(),10,220);
-    text("Sound Sensor value: "+readSoundSensorOnCPC(),10,240);
+    text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPX(9),10,200);
+    text("Light Sensor value: "+readLightSensorOnCPX(),10,220);
+    text("Sound Sensor value: "+readSoundSensorOnCPX(),10,240);
     text("Press Space bar to play Do Re Mi",10,260);
 
     //console.log(digitalRead(4));
