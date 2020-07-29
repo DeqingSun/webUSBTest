@@ -118,6 +118,23 @@ var stopToneOnCPC = function(){
 
 //resource on Circuit Playground Classic END
 
+//resource on Circuit Playground Express
+
+var CPX_Pin = {
+    5:8,
+    0:11,
+};
+
+var readTemperatureOnCPX = function(){
+    if (isBoardCircuitPlayground()){
+        return top.modifiedFirmata.circuitPlaygroundSimpleReadTemperature(0);
+    }else{
+        return 0;
+    }   
+}
+
+//resource on Circuit Playground Express END
+
 var connectFirmata = function(){
     top.webusbFirmata.connect();
 }
