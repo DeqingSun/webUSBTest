@@ -1,6 +1,6 @@
 var lastLEDTime = 0;
 var io13circleColor,firstNeoPixelColor;
-var analog0Value = 0;
+var analog1Value = 0;
 var tonePlayingNow = -1;
 var toneStartTime = 0;
 
@@ -61,7 +61,9 @@ function draw() {
     }
     
     var temperature = readTemperatureOnCPX();
-    analog0Value = analogReadCPX(0);
+    
+    //read analog channel 0 will affect speakser
+    analog1Value = analogReadCPX(1);
     
     fill(0);
     text("IO 13", 10, 30);
@@ -70,14 +72,14 @@ function draw() {
     var accelerationArray = readAccelOnCPX();
 
     text("Temperature: " + temperature, 10, 90);
-    text("Read IO A0: " + analog0Value , 10, 110);
+    text("Read IO A1: " + analog1Value , 10, 110);
     
     fill(io13circleColor);
     ellipse(30, 50, 30, 30);
     fill(firstNeoPixelColor);
     ellipse(130, 50, 30, 30);
     fill(0);
-    rect(10, 120, analog0Value / 2, 10);
+    rect(10, 120, analog1Value / 2, 10);
     
     fill(0);
     text("Acceleration:", 10, 150);
