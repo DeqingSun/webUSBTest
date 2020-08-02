@@ -89,12 +89,10 @@ function draw() {
     
     text("Left Button Pressed: "+(readLeftButtonOnCPX()?"Yes":"No ")+", Right Button: "+(readRightButtonOnCPX()?"Yes":"No ")+", Switch: "+(readSwitchButtonOnCPX()?"Yes":"No "),10,180);
     
-    text("Capacitive Touch Raw value on Pin 9: "+readCapacitiveTouchOnCPX(9),10,200);
+    text("Capacitive Touch Raw value on Pin A2: "+readCapacitiveTouchOnCPX(2),10,200);
     text("Light Sensor value: "+readLightSensorOnCPX(),10,220);
     text("Sound Sensor value: "+readSoundSensorOnCPX(),10,240);
     text("Press Space bar to play Do Re Mi",10,260);
-
-    //console.log(digitalRead(4));
     
 }
 

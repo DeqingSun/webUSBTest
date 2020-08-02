@@ -133,8 +133,12 @@ var CPX_analog_Pin = {
     7:7,
 };
 
+var CPX_analog_digital = [
+    12,6,9,10,3,2,0,1
+];
+
 var analogReadCPX = function(pin){
-    return analogRead(CPX_analog_Pin[pin]);
+    return top.modifiedFirmata.simpleReadAnalogCPX(CPX_analog_Pin[pin]);
 }
 
 var neoPixelWriteOnCPX = function(_r, _g, _b, _index){
@@ -162,7 +166,15 @@ var readSwitchButtonOnCPX = function(){
 }
 
 var readCapacitiveTouchOnCPX = function(pin){
-    return readCapacitiveTouchOnCPC(pin);
+    if (isBoardCircuitPlayground()){
+        if (CPX_analog_digital[pin]){
+            return top.modifiedFirmata.circuitPlaygroundReadCapacitiveTouchCPX(CPX_analog_digital[pin]);
+        }else{
+            return 0;
+        }
+    }else{
+        return 0;
+    }   
 }
 
 var readLightSensorOnCPX = function(){

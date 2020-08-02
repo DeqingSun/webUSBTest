@@ -148,7 +148,8 @@ var ModifiedFirmata = function () {
     var serialconnection = null;
 
     var analogLut = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
-
+    var analogLutCPX = [255, 255,255, 255, 255, 255, 255, 6, 255, 9, 10, 12]; //CPX https://github.com/arduino/ArduinoCore-samd/blob/master/variants/circuitplay/variant.h
+    
 
     this.digitalCallBack = [];
     this.analogCallBack = [];
@@ -287,6 +288,14 @@ var ModifiedFirmata = function () {
             this.analogCallBack[pin] = analogCallBack;
         }
     }
+    
+    this.readAnalogPinCPX = function (pin, analogCallBack) {
+        if ((this.serialconnection) && (pin < analogLut.length)) {
+            this.setAnalogReport(pin, true);
+            this.pinMode(analogLutCPX[pin], 2);
+            this.analogCallBack[pin] = analogCallBack;
+        }
+    }
 
     this.readDigitalPin = function (pin, digitalCallBack) {
         this.pinMode(pin, 0);
@@ -340,6 +349,18 @@ var ModifiedFirmata = function () {
             }
         } else {
             this.readAnalogPin(pin, simpleAnalogCallBack);
+            if (this.serialconnection) console.log("set to analog");
+        }
+        return pinValue;
+    }
+    this.simpleReadAnalogCPX = function (pin) {
+        var pinValue = 0;
+        if (this.pins[analogLutCPX[pin]] && this.pins[analogLutCPX[pin]].mode == 2) {
+            if (simpleAnalogValue[pin] != null) {
+                pinValue = simpleAnalogValue[pin];
+            }
+        } else {
+            this.readAnalogPinCPX(pin, simpleAnalogCallBack);
             if (this.serialconnection) console.log("set to analog");
         }
         return pinValue;
@@ -411,6 +432,23 @@ var ModifiedFirmata = function () {
         if(validPins. indexOf(pin) == -1){
             return 0;
         }
+        if (this.pins[pin] == null) this.pins[pin] = {};
+        if (this.pins[pin].capStreaming && this.pins[pin].capStreaming == true) {
+            if (this.capacitiveTouchValue[pin]){
+                return this.capacitiveTouchValue[pin];    
+            }
+        } else {
+            this.pins[pin].capStreaming = true;
+            if (this.serialconnection) this.serialconnection.sendRaw(new Uint8Array([START_SYSEX, 0x40, 0x41, pin & 0x7F, END_SYSEX]));
+        }
+        return 0;
+    }
+    
+    this.circuitPlaygroundReadCapacitiveTouchCPX = function (pin) {
+        /*var validPins = [0, 1, 2, 3, 6, 9, 10, 12];
+        if(validPins. indexOf(pin) == -1){
+            return 0;
+        }*/
         if (this.pins[pin] == null) this.pins[pin] = {};
         if (this.pins[pin].capStreaming && this.pins[pin].capStreaming == true) {
             if (this.capacitiveTouchValue[pin]){
