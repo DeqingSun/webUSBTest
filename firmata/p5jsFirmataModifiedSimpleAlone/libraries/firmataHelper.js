@@ -127,10 +127,6 @@ var CPX_analog_Pin = {
     1:7,
     2:9,
     3:10,
-    4:4,
-    5:5,
-    6:6,
-    7:7,
 };
 
 var CPX_analog_digital = [
@@ -138,7 +134,11 @@ var CPX_analog_digital = [
 ];
 
 var analogReadCPX = function(pin){
-    return top.modifiedFirmata.simpleReadAnalogCPX(CPX_analog_Pin[pin]);
+    if (CPX_analog_Pin[pin]!=null){
+        return top.modifiedFirmata.simpleReadAnalogCPX(CPX_analog_Pin[pin]);
+    }else{
+        return 0;   
+    }
 }
 
 var neoPixelWriteOnCPX = function(_r, _g, _b, _index){

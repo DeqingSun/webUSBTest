@@ -63,6 +63,7 @@ function draw() {
     var temperature = readTemperatureOnCPX();
     
     //read analog channel 0 will affect speakser
+    //CPX only work with A0~A3
     analog1Value = analogReadCPX(1);
     
     fill(0);

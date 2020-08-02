@@ -148,7 +148,7 @@ var ModifiedFirmata = function () {
     var serialconnection = null;
 
     var analogLut = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]; //leonardo https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/variants/leonardo/pins_arduino.h
-    var analogLutCPX = [255, 255,255, 255, 255, 255, 255, 6, 255, 9, 10, 12]; //CPX https://github.com/arduino/ArduinoCore-samd/blob/master/variants/circuitplay/variant.h
+    var analogLutCPX = [255, 255,255, 255, 255, 255, 255, 6, 255, 9, 10, 12 , 255, 255, 255 , 255, 255, 255, 18, 19,20,21,22,23,24,25]; //CPX https://github.com/arduino/ArduinoCore-samd/blob/master/variants/circuitplay/variant.h
     
 
     this.digitalCallBack = [];
@@ -230,6 +230,7 @@ var ModifiedFirmata = function () {
             var pin = this.receiveBuffer[this.bufferLen - 3] & 0x0F;
             var pinValue = this.receiveBuffer[this.bufferLen - 2] | (this.receiveBuffer[this.bufferLen - 1] << 7);
             if (this.analogCallBack[pin] != null) this.analogCallBack[pin](pin, pinValue);
+            console.log(pin,pinValue);
         }
     }
 
@@ -290,7 +291,7 @@ var ModifiedFirmata = function () {
     }
     
     this.readAnalogPinCPX = function (pin, analogCallBack) {
-        if ((this.serialconnection) && (pin < analogLut.length)) {
+        if ((this.serialconnection) && (pin < analogLutCPX.length)) {
             this.setAnalogReport(pin, true);
             this.pinMode(analogLutCPX[pin], 2);
             this.analogCallBack[pin] = analogCallBack;
