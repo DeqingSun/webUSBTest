@@ -167,7 +167,7 @@ var readSwitchButtonOnCPX = function(){
 
 var readCapacitiveTouchOnCPX = function(pin){
     if (isBoardCircuitPlayground()){
-        if (CPX_analog_digital[pin]){
+        if (CPX_analog_digital[pin]!=null){
             return top.modifiedFirmata.circuitPlaygroundReadCapacitiveTouchCPX(CPX_analog_digital[pin]);
         }else{
             return 0;
