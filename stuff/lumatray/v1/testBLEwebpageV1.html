@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>webBluetooth for reading</title>
+    <script>
+        //generate template on https://beaufortfrancois.github.io/sandbox/web-bluetooth/generator/
+
+        class LumaTrayBLEDevice {
+
+            constructor() {
+                this.device = null;
+                this.onDisconnected = this.onDisconnected.bind(this);
+                this.ledSending = false;
+            }
+
+            async request() {
+                let options = {
+                    "filters": [{
+                        "services": ['4acdc426-31b0-4540-b15c-5803d278b32e']
+                    }]
+                };
+                
+                var device = await navigator.bluetooth.requestDevice(options)
+                this.device = device;
+                this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
+                
+                return device;
+            }
+
+            connect() {
+                if (!this.device) {
+                    return Promise.reject('Device is not connected.');
+                }
+                return this.device.gatt.connect();
+            }
+
+            async findLedCharacteristic() {
+                var service = await this.device.gatt.getPrimaryService('4acdc426-31b0-4540-b15c-5803d278b32e');
+                this.ledCharacteristic = await service.getCharacteristic('2a69d1fe-a0a2-4a7f-a6db-a180ec269730');
+            }
+
+            async writeLedService(data) {
+                await this.ledCharacteristic.writeValue(data);
+            }
+
+
+            disconnect() {
+                if (!this.device) {
+                    return Promise.reject('Device is not connected.');
+                }
+                return this.device.gatt.disconnect();
+            }
+
+            onDisconnected() {
+                console.log('Device is disconnected.');
+            }
+        }
+
+        var lumaTrayBLEDevice = new LumaTrayBLEDevice();
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+
+        });
+        
+        async function connectButtonHandler(event) {
+            try {
+                await lumaTrayBLEDevice.request();
+                await lumaTrayBLEDevice.connect();
+                await lumaTrayBLEDevice.findLedCharacteristic();
+                //Do something with testBLEDevice...
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        async function writeButtonHandler(event) {
+
+            //brightness, mode, direction, strength, r, g, b
+            var bytes = getDataFromSilder();
+
+            var buffer = new Uint8Array(bytes).buffer;
+            var data = new DataView(buffer);
+            
+            if (!lumaTrayBLEDevice.ledSending){
+                lumaTrayBLEDevice.ledSending = true;
+                try {
+                    await lumaTrayBLEDevice.writeLedService(data);
+                } catch (e) {
+                    console.error(e);
+                }
+                lumaTrayBLEDevice.ledSending = false;
+            }
+            
+        }        
+
+        function getDataFromSilder(){
+            var briVal = parseInt(document.getElementById('brightnessRange').value);
+            var modeVal = parseInt(document.getElementById('modeRange').value);
+            var dirVal = parseInt(document.getElementById('directionRange').value);
+            var strVal = parseInt(document.getElementById('strengthRange').value);
+            var redVal = parseInt(document.getElementById('redRange').value);
+            var greenVal = parseInt(document.getElementById('greenRange').value);
+            var blueVal = parseInt(document.getElementById('blueRange').value);
+            
+            var bytes = [briVal,modeVal,dirVal,strVal,redVal,greenVal,blueVal];
+            return bytes;
+        }
+        
+        function modeSilderChangeHandler(val){
+            modeString = ["Just ON","FLASH","ORBIT","RGB CYCLE","RAINBOW"]
+            document.getElementById('modeText').innerHTML = modeString[val]
+        }
+        
+        function silderChangeHandler(sliderObj){
+            if (sliderObj.id=="modeRange"){
+                modeSilderChangeHandler(sliderObj.value);
+            }
+            if (document.getElementById('autoWrite').checked){
+                writeButtonHandler();
+            }
+        }
+        
+    </script>
+
+</head>
+
+<body>
+    <button onclick="connectButtonHandler()" type="button" id='connectButton'>Connect</button>
+    <br>
+    <br>
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Brightness
+    </div>
+    <br>
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="4" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Mode
+        <p id="modeText">Just ON</p>
+    </div>
+    <br>
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Direction
+    </div>
+    <br>
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Strength
+    </div>
+    <br>
+    <br>    
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="255" class="slider" id="redRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Red
+    </div>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="255" class="slider" id="greenRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Green
+    </div>        
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="255" class="slider" id="blueRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
+        Blue
+    </div>    
+    
+    <br>
+    <br>
+    <br>
+
+    <button onclick="writeButtonHandler()" type="button" id='writeButton'>Write value</button>
+    <br>
+    <br>
+    <input type="checkbox" id="autoWrite" checked>Auto Write
+
+
+</body>
+
+</html>
