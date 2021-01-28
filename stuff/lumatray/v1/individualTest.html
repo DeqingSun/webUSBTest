@@ -102,32 +102,9 @@
 
         }
 
-        function getDataFromSilder() {
-            var briVal = parseInt(document.getElementById('brightnessRange').value);
-            var modeVal = parseInt(document.getElementById('modeRange').value);
-            var dirVal = parseInt(document.getElementById('directionRange').value);
-            var strVal = parseInt(document.getElementById('strengthRange').value);
-            var redVal = parseInt(document.getElementById('redRange').value);
-            var greenVal = parseInt(document.getElementById('greenRange').value);
-            var blueVal = parseInt(document.getElementById('blueRange').value);
 
-            var bytes = [briVal, modeVal, dirVal, strVal, redVal, greenVal, blueVal];
-            return bytes;
-        }
 
-        function modeSilderChangeHandler(val) {
-            modeString = ["Just ON", "FLASH", "ORBIT", "RGB CYCLE", "RAINBOW"]
-            document.getElementById('modeText').innerHTML = modeString[val]
-        }
 
-        function silderChangeHandler(sliderObj) {
-            if (sliderObj.id == "modeRange") {
-                modeSilderChangeHandler(sliderObj.value);
-            }
-            if (document.getElementById('autoWrite').checked) {
-                writeButtonHandler();
-            }
-        }
 
         function S126silderChangeHandler(sliderObj) {
             var redVal = parseInt(document.getElementById('S126redRange').value);
@@ -162,6 +139,17 @@
             document.getElementById('MHS110blueText').innerHTML = 'Blue ' + blueVal;
             writeData([18, redVal, greenVal, blueVal]);
         }
+        function SMS1105silderChangeHandler(sliderObj) {
+            var warmVal = parseInt(document.getElementById('SMS1105warmRange').value);
+            var neutralVal = parseInt(document.getElementById('SMS1105neutralRange').value);
+            var coolVal = parseInt(document.getElementById('SMS1105coolRange').value);
+            document.getElementById('SMS1105warmText').innerHTML = 'Warm ' + warmVal;
+            document.getElementById('SMS1105neutralText').innerHTML = 'Neutral ' + neutralVal;
+            document.getElementById('SMS1105coolText').innerHTML = 'Cool ' + coolVal;
+            writeData([21, neutralVal,0,0, coolVal,0,0, coolVal,0,0, warmVal,0,0, warmVal,0,0, neutralVal,0,0]);
+        }
+
+
     </script>
 
 </head>
@@ -216,19 +204,25 @@
         <input type="range" min="0" max="255" value="0" class="slider" id="MHS110blueRange" oninput="MHS110silderChangeHandler(this)" onchange="MHS110silderChangeHandler(this)">
         <div style='display: inline-block;' id="MHS110blueText">Blue 0</div>
     </div>
+        <br>
+    <br>
+    <br> SMS1105UWD 
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="SMS1105warmRange" oninput="SMS1105silderChangeHandler(this)" onchange="SMS1105silderChangeHandler(this)">
+        <div style='display: inline-block;' id="SMS1105warmText">Warm 0</div>
+    </div>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="SMS1105neutralRange" oninput="SMS1105silderChangeHandler(this)" onchange="SMS1105silderChangeHandler(this)">
+        <div style='display: inline-block;' id="SMS1105neutralText">Neutral 0</div>
+    </div>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="SMS1105coolRange" oninput="SMS1105silderChangeHandler(this)" onchange="SMS1105silderChangeHandler(this)">
+        <div style='display: inline-block;' id="SMS1105coolText">Cool 0</div>
+    </div>
     
     
     
-    
-    
-
-    <br>
-    <br>
-    <br>
-
-    <br>
-    <br>
-    <input type="checkbox" id="autoWrite" checked>Auto Write
 
 
 </body>
