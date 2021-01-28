@@ -144,6 +144,24 @@
                 writeButtonHandler();
             }*/
         }
+        function M173200silderChangeHandler(sliderObj) {
+            var redVal = parseInt(document.getElementById('M173200redRange').value);
+            var greenVal = parseInt(document.getElementById('M173200greenRange').value);
+            var blueVal = parseInt(document.getElementById('M173200blueRange').value);
+            document.getElementById('M173200redText').innerHTML = 'Red ' + redVal;
+            document.getElementById('M173200greenText').innerHTML = 'Green ' + greenVal;
+            document.getElementById('M173200blueText').innerHTML = 'Blue ' + blueVal;
+            writeData([9, redVal, greenVal, blueVal, redVal, greenVal, blueVal, redVal, greenVal, blueVal]);
+        }
+        function MHS110silderChangeHandler(sliderObj) {
+            var redVal = parseInt(document.getElementById('MHS110redRange').value);
+            var greenVal = parseInt(document.getElementById('MHS110greenRange').value);
+            var blueVal = parseInt(document.getElementById('MHS110blueRange').value);
+            document.getElementById('MHS110redText').innerHTML = 'Red ' + redVal;
+            document.getElementById('MHS110greenText').innerHTML = 'Green ' + greenVal;
+            document.getElementById('MHS110blueText').innerHTML = 'Blue ' + blueVal;
+            writeData([18, redVal, greenVal, blueVal]);
+        }
     </script>
 
 </head>
@@ -166,41 +184,43 @@
         <input type="range" min="0" max="255" value="0" class="slider" id="S126blueRange" oninput="S126silderChangeHandler(this)" onchange="S126silderChangeHandler(this)">
         <div style='display: inline-block;' id="S126blueText">Blue 0</div>
     </div>
-
-
-
     <br>
+    <br>
+    <br> 155124M173200
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Brightness
+        <input type="range" min="0" max="255" value="0" class="slider" id="M173200redRange" oninput="M173200silderChangeHandler(this)" onchange="M173200silderChangeHandler(this)">
+        <div style='display: inline-block;' id="M173200redText">Red 0</div>
+    </div>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="M173200greenRange" oninput="M173200silderChangeHandler(this)" onchange="M173200silderChangeHandler(this)">
+        <div style='display: inline-block;' id="M173200greenText">Green 0</div>
+    </div>
+    <div class="slidecontainer">
+        <input type="range" min="0" max="255" value="0" class="slider" id="M173200blueRange" oninput="M173200silderChangeHandler(this)" onchange="M173200silderChangeHandler(this)">
+        <div style='display: inline-block;' id="M173200blueText">Blue 0</div>
     </div>
     <br>
     <br>
-    <div class="slidecontainer">
-        <input type="range" min="0" max="4" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
-        <p id="modeText">Just ON</p>
-    </div>
-    <br>
+    <br> MHS110CRGBCT (old one)
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Direction
-    </div>
-    <br>
-    <br>
-    <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Strength
-    </div>
-    <br>
-    <br>
-    <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="redRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Red
+        <input type="range" min="0" max="255" value="0" class="slider" id="MHS110redRange" oninput="MHS110silderChangeHandler(this)" onchange="MHS110silderChangeHandler(this)">
+        <div style='display: inline-block;' id="MHS110redText">Red 0</div>
     </div>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="greenRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Green
+        <input type="range" min="0" max="255" value="0" class="slider" id="MHS110greenRange" oninput="MHS110silderChangeHandler(this)" onchange="MHS110silderChangeHandler(this)">
+        <div style='display: inline-block;' id="MHS110greenText">Green 0</div>
     </div>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="blueRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Blue
+        <input type="range" min="0" max="255" value="0" class="slider" id="MHS110blueRange" oninput="MHS110silderChangeHandler(this)" onchange="MHS110silderChangeHandler(this)">
+        <div style='display: inline-block;' id="MHS110blueText">Blue 0</div>
     </div>
+    
+    
+    
+    
+    
 
     <br>
     <br>
