@@ -88,17 +88,16 @@
             if (!lumaTrayBLEDevice.ledSending) {
                 lumaTrayBLEDevice.ledSending = true;
                 try {
-                    while(lumaTrayBLEDevice.individualQueue.length>0){
+                    while (lumaTrayBLEDevice.individualQueue.length > 0) {
                         lastElement = lumaTrayBLEDevice.individualQueue.pop();
-                        lumaTrayBLEDevice.individualQueue.length=0;
+                        lumaTrayBLEDevice.individualQueue.length = 0;
                         await lumaTrayBLEDevice.writeIndividualService(lastElement);
                     }
                 } catch (e) {
                     console.error(e);
                 }
                 lumaTrayBLEDevice.ledSending = false;
-            }else{
-            }
+            } else {}
 
         }
 
@@ -121,6 +120,7 @@
                 writeButtonHandler();
             }*/
         }
+
         function M173200silderChangeHandler(sliderObj) {
             var redVal = parseInt(document.getElementById('M173200redRange').value);
             var greenVal = parseInt(document.getElementById('M173200greenRange').value);
@@ -130,6 +130,7 @@
             document.getElementById('M173200blueText').innerHTML = 'Blue ' + blueVal;
             writeData([9, redVal, greenVal, blueVal, redVal, greenVal, blueVal, redVal, greenVal, blueVal]);
         }
+
         function MHS110silderChangeHandler(sliderObj) {
             var redVal = parseInt(document.getElementById('MHS110redRange').value);
             var greenVal = parseInt(document.getElementById('MHS110greenRange').value);
@@ -139,6 +140,7 @@
             document.getElementById('MHS110blueText').innerHTML = 'Blue ' + blueVal;
             writeData([18, redVal, greenVal, blueVal]);
         }
+
         function SMS1105silderChangeHandler(sliderObj) {
             var warmVal = parseInt(document.getElementById('SMS1105warmRange').value);
             var neutralVal = parseInt(document.getElementById('SMS1105neutralRange').value);
@@ -146,10 +148,9 @@
             document.getElementById('SMS1105warmText').innerHTML = 'Warm ' + warmVal;
             document.getElementById('SMS1105neutralText').innerHTML = 'Neutral ' + neutralVal;
             document.getElementById('SMS1105coolText').innerHTML = 'Cool ' + coolVal;
-            writeData([21, neutralVal,0,0, coolVal,0,0, coolVal,0,0, warmVal,0,0, warmVal,0,0, neutralVal,0,0]);
+            writeData([21, neutralVal, 0, 0, coolVal, 0, 0, coolVal, 0, 0, warmVal, 0, 0, warmVal, 0, 0, neutralVal, 0, 0]);
         }
-
-
+        }
     </script>
 
 </head>
@@ -204,9 +205,9 @@
         <input type="range" min="0" max="255" value="0" class="slider" id="MHS110blueRange" oninput="MHS110silderChangeHandler(this)" onchange="MHS110silderChangeHandler(this)">
         <div style='display: inline-block;' id="MHS110blueText">Blue 0</div>
     </div>
-        <br>
     <br>
-    <br> SMS1105UWD 
+    <br>
+    <br> SMS1105UWD
     <br>
     <div class="slidecontainer">
         <input type="range" min="0" max="255" value="0" class="slider" id="SMS1105warmRange" oninput="SMS1105silderChangeHandler(this)" onchange="SMS1105silderChangeHandler(this)">
@@ -220,9 +221,9 @@
         <input type="range" min="0" max="255" value="0" class="slider" id="SMS1105coolRange" oninput="SMS1105silderChangeHandler(this)" onchange="SMS1105silderChangeHandler(this)">
         <div style='display: inline-block;' id="SMS1105coolText">Cool 0</div>
     </div>
-    
-    
-    
+
+
+
 
 
 </body>
