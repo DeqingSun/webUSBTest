@@ -213,18 +213,18 @@
             PWMr = convertedPWM[0]
             PWMg = convertedPWM[1]
             PWMb = convertedPWM[2]
-            if (PWMr>1 || PWMg>1 || PWMb>1){
+            if (PWMr > 1 || PWMg > 1 || PWMb > 1) {
                 console.log(convertedPWM, "bigger than 1")
             }
-            PWMr = Math.round( PWMr*255 );
-            PWMg = Math.round( PWMg*255 );
-            PWMb = Math.round( PWMb*255 );
-            
-            document.getElementById('M173200redRange').value=PWMr;
-            document.getElementById('M173200greenRange').value=PWMg;
-            document.getElementById('M173200blueRange').value=PWMb;
+            PWMr = Math.round(PWMr * 255);
+            PWMg = Math.round(PWMg * 255);
+            PWMb = Math.round(PWMb * 255);
+
+            document.getElementById('M173200redRange').value = PWMr;
+            document.getElementById('M173200greenRange').value = PWMg;
+            document.getElementById('M173200blueRange').value = PWMb;
             M173200silderChangeHandler();
-            
+
             console.log(tempVal, x, y, [PWMr, PWMg, PWMb])
 
 

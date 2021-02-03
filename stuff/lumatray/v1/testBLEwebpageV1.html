@@ -12,6 +12,7 @@
                 this.device = null;
                 this.onDisconnected = this.onDisconnected.bind(this);
                 this.ledSending = false;
+                this.ledQueue = [];
             }
 
             async request() {
@@ -20,11 +21,11 @@
                         "services": ['4acdc426-31b0-4540-b15c-5803d278b32e']
                     }]
                 };
-                
+
                 var device = await navigator.bluetooth.requestDevice(options)
                 this.device = device;
                 this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
-                
+
                 return device;
             }
 
@@ -62,7 +63,7 @@
         document.addEventListener("DOMContentLoaded", function (event) {
 
         });
-        
+
         async function connectButtonHandler(event) {
             try {
                 await lumaTrayBLEDevice.request();
@@ -73,7 +74,7 @@
                 console.error(e);
             }
         }
-        
+
         async function writeButtonHandler(event) {
 
             //brightness, mode, direction, strength, r, g, b
@@ -81,8 +82,7 @@
 
             var buffer = new Uint8Array(bytes).buffer;
             var data = new DataView(buffer);
-            
-            if (!lumaTrayBLEDevice.ledSending){
+            if (!lumaTrayBLEDevice.ledSending) {
                 lumaTrayBLEDevice.ledSending = true;
                 try {
                     await lumaTrayBLEDevice.writeLedService(data);
@@ -91,10 +91,9 @@
                 }
                 lumaTrayBLEDevice.ledSending = false;
             }
-            
-        }        
+        }
 
-        function getDataFromSilder(){
+        function getDataFromSilder() {
             var briVal = parseInt(document.getElementById('brightnessRange').value);
             var modeVal = parseInt(document.getElementById('modeRange').value);
             var dirVal = parseInt(document.getElementById('directionRange').value);
@@ -102,25 +101,24 @@
             var redVal = parseInt(document.getElementById('redRange').value);
             var greenVal = parseInt(document.getElementById('greenRange').value);
             var blueVal = parseInt(document.getElementById('blueRange').value);
-            
-            var bytes = [briVal,modeVal,dirVal,strVal,redVal,greenVal,blueVal];
+
+            var bytes = [briVal, modeVal, dirVal, strVal, redVal, greenVal, blueVal];
             return bytes;
         }
-        
-        function modeSilderChangeHandler(val){
-            modeString = ["Just ON","FLASH","ORBIT","RGB CYCLE","RAINBOW"]
+
+        function modeSilderChangeHandler(val) {
+            modeString = ["Just ON", "FLASH", "ORBIT", "RGB CYCLE", "RAINBOW"]
             document.getElementById('modeText').innerHTML = modeString[val]
         }
-        
-        function silderChangeHandler(sliderObj){
-            if (sliderObj.id=="modeRange"){
+
+        function silderChangeHandler(sliderObj) {
+            if (sliderObj.id == "modeRange") {
                 modeSilderChangeHandler(sliderObj.value);
             }
-            if (document.getElementById('autoWrite').checked){
+            if (document.getElementById('autoWrite').checked) {
                 writeButtonHandler();
             }
         }
-        
     </script>
 
 </head>
@@ -131,43 +129,36 @@
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Brightness
+        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Brightness
     </div>
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="4" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Mode
+        <input type="range" min="0" max="4" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
         <p id="modeText">Just ON</p>
     </div>
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Direction
+        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Direction
     </div>
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Strength
+        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Strength
     </div>
     <br>
-    <br>    
+    <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="redRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Red
+        <input type="range" min="0" max="255" value="255" class="slider" id="redRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Red
     </div>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="greenRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Green
-    </div>        
+        <input type="range" min="0" max="255" value="255" class="slider" id="greenRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Green
+    </div>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="blueRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)">
-        Blue
-    </div>    
-    
+        <input type="range" min="0" max="255" value="255" class="slider" id="blueRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Blue
+    </div>
+
     <br>
     <br>
     <br>
