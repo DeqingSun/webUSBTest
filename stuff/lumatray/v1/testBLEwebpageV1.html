@@ -82,10 +82,16 @@
 
             var buffer = new Uint8Array(bytes).buffer;
             var data = new DataView(buffer);
+            lumaTrayBLEDevice.ledQueue.push(data);
+
             if (!lumaTrayBLEDevice.ledSending) {
                 lumaTrayBLEDevice.ledSending = true;
                 try {
-                    await lumaTrayBLEDevice.writeLedService(data);
+                    while (lumaTrayBLEDevice.ledQueue.length > 0) {
+                        lastElement = lumaTrayBLEDevice.ledQueue.pop();
+                        lumaTrayBLEDevice.ledQueue.length = 0;
+                        await lumaTrayBLEDevice.writeLedService(lastElement);
+                    }
                 } catch (e) {
                     console.error(e);
                 }
