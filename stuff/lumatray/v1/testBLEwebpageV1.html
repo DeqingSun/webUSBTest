@@ -125,6 +125,89 @@
                 writeButtonHandler();
             }
         }
+
+        /*color temperature test*/
+
+        class LEDStruct {
+
+            set_x_y_bri(x, y, bri) {
+                this.x = x
+                this.y = y
+                this.bri = bri
+            }
+            set_X_Y_Z(X, Y, Z) {
+                this.X = X
+                this.Y = Y
+                this.Z = Z
+            }
+            convert3D() {
+                this.Y = this.bri;
+                this.X = this.x / this.y * this.Y;
+                this.Z = (1 - this.x - this.y) / this.y * this.Y;
+            }
+        }
+        var redLED = new LEDStruct();
+        var greenLED = new LEDStruct();
+        var blueLED = new LEDStruct();
+        redLED.set_x_y_bri(0.695388638, 0.304478555, 450);
+        greenLED.set_x_y_bri(0.09793975, 0.831592666, 850);
+        blueLED.set_x_y_bri(0.135502671, 0.039879121, 140);
+        redLED.convert3D();
+        greenLED.convert3D();
+        blueLED.convert3D();
+        //console.log(redLED);
+
+        function util_T_to_xy(t) {
+            if ((t >= 4000 || true) && t <= 7000) { //just go beyond the 4000K restriction for now, todo: add more accurate algorithm
+                x = -4.607E9 / (t * t * t) + 2.9678E6 / (t * t) + 0.09911E3 / (t) + 0.244063;
+                y = -3.000 * x * x + 2.870 * x - 0.275
+                return [x, y]
+            } else if (t >= 7000 && t <= 25000) {
+                x = -2.0064E9 / (t * t * t) + 1.9018E6 / (t * t) + 0.24748E3 / (t) + 0.237040;
+                y = -3.000 * x * x + 2.870 * x - 0.275
+                return [x, y]
+            } else {
+                return
+            }
+        }
+
+        function util_conv_xy_pwm(x, y, bri) {
+            PWMr = (((greenLED.y - blueLED.y) * (blueLED.x - x) + (y - blueLED.y) * (greenLED.x - blueLED.x)) / ((greenLED.y - blueLED.y) * (blueLED.x - redLED.x) + (greenLED.y - blueLED.y) * (greenLED.x - blueLED.x))) * (redLED.y * bri) / (y * redLED.bri)
+            PWMg = (((blueLED.y - redLED.y) * (redLED.x - x) + (y - redLED.y) * (blueLED.x - redLED.x)) / ((blueLED.y - redLED.y) * (redLED.x - greenLED.x) + (greenLED.y - redLED.y) * (blueLED.x - redLED.x))) * (greenLED.y * bri) / (y * greenLED.bri)
+            PWMb = (((greenLED.y - redLED.y) * (redLED.x - x) + (y - redLED.y) * (greenLED.x - redLED.x)) / ((greenLED.y - redLED.y) * (redLED.x - blueLED.x) + (blueLED.y - redLED.y) * (greenLED.x - redLED.x))) * (blueLED.y * bri) / (y * blueLED.bri)
+            return [PWMr, PWMg, PWMb]
+        }
+
+        function M173200tempSilderChangeHandler(sliderObj) {
+            var tempVal = parseInt(document.getElementById('M173200tempRange').value);
+            document.getElementById('M173200tempText').innerHTML = 'Temperature ' + tempVal;
+            convertedXY = util_T_to_xy(tempVal)
+            x = convertedXY[0]
+            y = convertedXY[1]
+            convertedPWM = util_conv_xy_pwm(x, y, 1000)
+            PWMr = convertedPWM[0]
+            PWMg = convertedPWM[1]
+            PWMb = convertedPWM[2]
+            if (PWMr > 1 || PWMg > 1 || PWMb > 1) {
+                console.log(convertedPWM, "bigger than 1")
+            }
+            PWMr = Math.round(PWMr * 255);
+            PWMg = Math.round(PWMg * 255);
+            PWMb = Math.round(PWMb * 255);
+
+            document.getElementById('redRange').value = PWMr;
+            document.getElementById('greenRange').value = PWMg;
+            document.getElementById('blueRange').value = PWMb;
+            //M173200silderChangeHandler();
+
+            if (document.getElementById('autoWrite').checked) {
+                writeButtonHandler();
+            }
+
+            //console.log(tempVal, x, y, [PWMr, PWMg, PWMb])
+
+
+        }
     </script>
 
 </head>
@@ -164,7 +247,11 @@
     <div class="slidecontainer">
         <input type="range" min="0" max="255" value="255" class="slider" id="blueRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Blue
     </div>
-
+    <br>
+    <div class="slidecontainer">
+        <input type="range" min="2700" max="6000" value="4000" class="slider" id="M173200tempRange" oninput="M173200tempSilderChangeHandler(this)" onchange="M173200tempSilderChangeHandler(this)">
+        <div style='display: inline-block;' id="M173200tempText">Temperature 4000</div>
+    </div>
     <br>
     <br>
     <br>
