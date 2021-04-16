@@ -291,7 +291,7 @@
 <!-- Load in the d3 library -->
 <!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
 <script src="d3.v5.min.js"></script>
-<script src="bleserial.js"></script>
+<script src="serial.js"></script>
 <script>
     function showVal(slider, textID) {
         var value_txt_div = document.getElementById(textID);
@@ -307,11 +307,12 @@
     var timeStep = 20;
     var endPlayTimeoutID = null;
     var enabledChannel = [0, 1, 2, 3, 6, 7];
-    var heaterEnabledChannel = [10, 11, 12, 13];
+    var heaterEnabledChannel = [10, 11];
     var heaterSendString = "";
     var ovrallGain = 0.5;
     var nowPlaying = false;
     var webUSBPort = null;
+    var textEncoder = new TextEncoder();
 
     function startDemo() {
         var repeat_count = parseInt(document.getElementById("repeat_count").value);
@@ -400,7 +401,11 @@
         console.log(heaterSendString);
         //console.log("longest loop is " + maxLoopTime.toString());
         endPlayTimeoutID = setTimeout(endOfDemo, maxLoopTime * 1000);
-        nusSendString(heaterSendString);
+        if (webUSBPort) {
+            webUSBPort.send(textEncoder.encode(heaterSendString)).catch(error => {
+                console.log('Send error: ' + error);
+            });
+        };
         //config and test in application-utility-audio midi setup, 7.1 surround
         //R,L
         setPlaying(true);
@@ -424,7 +429,11 @@
             gainNodeArr[i].gain.cancelScheduledValues(currentTime);
             gainNodeArr[i].gain.value = 0;
         }
-        nusSendString('N\n');
+        if (webUSBPort) {
+            webUSBPort.send(textEncoder.encode('N\n')).catch(error => {
+                console.log('Send error: ' + error);
+            });
+        };
     }
 
     function setPlaying(playing) {
@@ -587,6 +596,39 @@
         }).y(function (d) {
             return channelGraph.y(d.y)
         }))
+    }
+    //need web server
+    function webUSBConnect() {
+        webUSBPort.connect().then(() => {
+            console.log('WebUSB connected')
+            webUSBPort.onReceive = data => {
+                let textDecoder = new TextDecoder();
+                console.log(textDecoder.decode(data));
+            }
+            webUSBPort.onReceiveError = error => {
+                console.error(error);
+            };
+        }, error => {
+            console.log(error);
+        }).then(() => {
+            //send something first to get the port working well, or the run will not work at the 1st time. (Bug?)
+            webUSBPort.send(textEncoder.encode(" "));
+        })
+    }
+
+    function connectHeaterArduino() {
+        if (webUSBPort) {
+            webUSBPort.disconnect();
+            port = null;
+        }
+        else {
+            serial.requestPort().then(selectedPort => {
+                webUSBPort = selectedPort;
+                webUSBConnect();
+            }).catch(error => {
+                console.log(error);
+            });
+        }
     }
     //init in the end of this file
 </script>
@@ -861,7 +903,7 @@
         <tr class="row_1">
             <td class="column_1"> Heater Settings 1</td>
             <td colspan="2">
-                <button class="margin_top_20 margin_left_30 addButton" onclick="connectionToggle()" id="clientConnectButton">Connect Arduino</button>
+                <button class="margin_top_20 margin_left_30 addButton" onclick="connectHeaterArduino()">Connect Arduino</button>
             </td>
         </tr>
         <tr class="row_2">
@@ -931,80 +973,6 @@
                 <div id="ch11_graph"></div>
                 <label class="margin_top_20">Code</label>
                 <input type="text" id="ch11_code" size="54" oninput="updateCode(11)"> </td>
-        </tr>
-    </table>
-    <table>
-        <tr class="row_1">
-            <td class="column_1"> Heater Settings 3</td>
-            <td colspan="2"> </td>
-        </tr>
-        <tr class="row_2">
-            <td class="column_1"><img src="acturator_1.png" alt="acturator_1" class="human_img"></td>
-            <td class="column_2"> <span class="lable_on">ON</span>
-                <label class="margin_top_20">Strength: <span class="result_number" id="strength_set_text_on_ch12">80</span></label>
-                <input class="margin_left_30" id="ch12_fn0_str" type="range" min="0" max="100" step="1" value="80" oninput="showVal(this,'strength_set_text_on_ch12')" />
-                <br>
-                <label class="margin_top_20">Duration:</label>
-                <input type="text" id="ch12_fn0_dur" size="4" value="1000">
-                <br>
-                <label class="margin_top_20">Fade:</label>
-                <input type="checkbox" id="ch12_fn0_fad" disabled>
-                <br>
-                <button class="margin_top_20 margin_left_30 addButton" onclick="channelAddControl(12,0)">Add ></button>
-            </td>
-            <td class="column_3"> <span class="lable_off">OFF</span>
-                <label class="margin_top_20" style="color: #888888;">Strength: <span class="result_number" id="strength_set_text_off_ch12">0</span></label>
-                <input class="margin_left_30" id="ch12_fn1_str" type="range" min="0" max="100" step="1" value="0" oninput="showVal(this,'strength_set_text_off_ch12')" disabled />
-                <br>
-                <label class="margin_top_20">Duration:</label>
-                <input type="text" id="ch12_fn1_dur" size="4" value="1000">
-                <br>
-                <label class="margin_top_20">Fade:</label>
-                <input type="checkbox" id="ch12_fn1_fad" disabled>
-                <br>
-                <button class="margin_top_20 margin_left_30 addButton" onclick="channelAddControl(12,1)">Add ></button>
-            </td>
-            <td class="column_4">
-                <div id="ch12_graph"></div>
-                <label class="margin_top_20">Code</label>
-                <input type="text" id="ch12_code" size="54" oninput="updateCode(12)"> </td>
-        </tr>
-    </table>
-    <table>
-        <tr class="row_1">
-            <td class="column_1"> Heater Settings 4</td>
-            <td colspan="2"> </td>
-        </tr>
-        <tr class="row_2">
-            <td class="column_1"><img src="acturator_1.png" alt="acturator_1" class="human_img"></td>
-            <td class="column_2"> <span class="lable_on">ON</span>
-                <label class="margin_top_20">Strength: <span class="result_number" id="strength_set_text_on_ch13">80</span></label>
-                <input class="margin_left_30" id="ch13_fn0_str" type="range" min="0" max="100" step="1" value="80" oninput="showVal(this,'strength_set_text_on_ch13')" />
-                <br>
-                <label class="margin_top_20">Duration:</label>
-                <input type="text" id="ch13_fn0_dur" size="4" value="1000">
-                <br>
-                <label class="margin_top_20">Fade:</label>
-                <input type="checkbox" id="ch13_fn0_fad" disabled>
-                <br>
-                <button class="margin_top_20 margin_left_30 addButton" onclick="channelAddControl(13,0)">Add ></button>
-            </td>
-            <td class="column_3"> <span class="lable_off">OFF</span>
-                <label class="margin_top_20" style="color: #888888;">Strength: <span class="result_number" id="strength_set_text_off_ch13">0</span></label>
-                <input class="margin_left_30" id="ch13_fn1_str" type="range" min="0" max="100" step="1" value="0" oninput="showVal(this,'strength_set_text_off_ch13')" disabled />
-                <br>
-                <label class="margin_top_20">Duration:</label>
-                <input type="text" id="ch13_fn1_dur" size="4" value="1000">
-                <br>
-                <label class="margin_top_20">Fade:</label>
-                <input type="checkbox" id="ch13_fn1_fad" disabled>
-                <br>
-                <button class="margin_top_20 margin_left_30 addButton" onclick="channelAddControl(13,1)">Add ></button>
-            </td>
-            <td class="column_4">
-                <div id="ch13_graph"></div>
-                <label class="margin_top_20">Code</label>
-                <input type="text" id="ch13_code" size="54" oninput="updateCode(13)"> </td>
         </tr>
     </table>
     <!-- paste table below -->
