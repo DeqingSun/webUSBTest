@@ -112,7 +112,7 @@
         }
 
         function modeSilderChangeHandler(val) {
-            modeString = ["Just ON", "FLASH", "ORBIT", "RGB CYCLE", "RAINBOW"]
+            modeString = ["Just ON", "FLASH", "ORBIT"]
             document.getElementById('modeText').innerHTML = modeString[val]
         }
 
@@ -247,7 +247,7 @@
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="4" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
+        <input type="range" min="0" max="2" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
         <p id="modeText">Just ON</p>
     </div>
     <br>
