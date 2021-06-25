@@ -106,94 +106,51 @@
             }
         }
         /*color temperature test*/
-        //LW Y87C-S1T2-3K8L-Z 0.33 0.33 180~450mcd, first we use the middle 315mcd
-        //SMS1105UWDW 0.44 0.44 1500~2000mcd, first we use the middle 1750mcd  (much more brighter)
-        class LEDStruct {
-            set_x_y_bri(x, y, bri) {
-                this.x = x
-                this.y = y
-                this.bri = bri
-            }
-            set_X_Y_Z(X, Y, Z) {
-                this.X = X
-                this.Y = Y
-                this.Z = Z
-            }
-            convert3D() {
-                this.Y = this.bri;
-                this.X = this.x / this.y * this.Y;
-                this.Z = (1 - this.x - this.y) / this.y * this.Y;
-            }
-            convert2D() {
-                this.x = this.X / (this.X + this.Y + this.Z);
-                this.y = this.Y / (this.X + this.Y + this.Z);
-                this.bri = this.Y;
-            }
-            mixFrom2LED(led1, ratio1, led2, ratio2) {
-                this.X = led1.X * ratio1 + led2.X * ratio2;
-                this.Y = led1.Y * ratio1 + led2.Y * ratio2;
-                this.Z = led1.Z * ratio1 + led2.Z * ratio2;
-                this.convert2D()
-            }
-        }
-        var neutralLED = new LEDStruct();
-        var warmLED = new LEDStruct();
-        var mixedLED = new LEDStruct();
-        neutralLED.set_x_y_bri(0.33, 0.33, 315);
-        warmLED.set_x_y_bri(0.44, 0.44, 1750);
-        neutralLED.convert3D();
-        warmLED.convert3D();
-        var allPossibleMixture = [];
-        for (i = 0; i < 256; i++) {
-            for (j = 0; j < 50; j++) {
-                mixedLED.mixFrom2LED(neutralLED, i / 256.0, warmLED, j / 256.0);
-                if ((mixedLED.bri > (315 * .98)) && (mixedLED.bri < (315 * 1.02))) {
-                    allPossibleMixture.push([mixedLED.x, mixedLED.y, i, j])
-                        //console.log(i, j, mixedLED.bri);
-                }
-            }
-        }
-        //console.log(allPossibleMixture)
-        //mixedLED.mixFrom2LED(neutralLED,1,warmLED,.18);
-        //console.log(mixedLED);
-        function util_T_to_xy(t) {
-            if ((t >= 4000 || true) && t <= 7000) { //just go beyond the 4000K restriction for now, todo: add more accurate algorithm
-                x = -4.607E9 / (t * t * t) + 2.9678E6 / (t * t) + 0.09911E3 / (t) + 0.244063;
-                y = -3.000 * x * x + 2.870 * x - 0.275
-                return [x, y]
-            }
-            else if (t >= 7000 && t <= 25000) {
-                x = -2.0064E9 / (t * t * t) + 1.9018E6 / (t * t) + 0.24748E3 / (t) + 0.237040;
-                y = -3.000 * x * x + 2.870 * x - 0.275
-                return [x, y]
-            }
-            else {
-                return
-            }
-        }
+        tempLookup = [
+[106, 194], [99, 179], [101, 181], [109, 193], [104, 182], [111, 192], [110, 188], [103, 174]
+, [104, 174], [107, 177], [114, 186], [112, 181], [111, 177], [119, 188], [114, 178], [117, 181]
+, [116, 177], [123, 186], [113, 169], [114, 169], [115, 168], [124, 180], [125, 179], [117, 166]
+, [124, 174], [123, 171], [124, 170], [128, 174], [125, 168], [133, 177], [123, 162], [131, 171]
+, [134, 173], [123, 157], [126, 159], [128, 160], [135, 167], [130, 159], [127, 154], [141, 169]
+, [138, 164], [137, 161], [142, 165], [145, 167], [144, 164], [139, 157], [146, 163], [141, 156]
+, [148, 162], [142, 154], [151, 162], [142, 151], [138, 145], [142, 148], [152, 157], [140, 143]
+, [155, 157], [142, 142], [142, 141], [158, 155], [147, 143], [158, 152], [150, 143], [158, 149]
+, [158, 148], [158, 146], [158, 145], [152, 138], [159, 143], [163, 145], [152, 134], [156, 136]
+, [169, 146], [160, 137], [163, 138], [168, 141], [172, 143], [163, 134], [162, 132], [175, 141]
+, [160, 128], [172, 136], [162, 127], [169, 131], [178, 137], [180, 137], [179, 135], [165, 123]
+, [181, 134], [179, 131], [172, 125], [174, 125], [170, 121], [172, 121], [175, 122], [181, 125]
+, [171, 117], [180, 122], [189, 127], [191, 127], [178, 117], [192, 125], [186, 120], [178, 114]
+, [177, 112], [191, 120], [182, 113], [193, 119], [197, 120], [189, 114], [184, 110], [191, 113]
+, [198, 116], [193, 112], [188, 108], [185, 105], [197, 111], [203, 113], [201, 111], [187, 102]
+, [205, 111], [202, 108], [196, 104], [208, 109], [198, 103], [202, 104], [206, 105], [214, 108]
+, [194, 97], [194, 96], [196, 96], [217, 105], [215, 103], [213, 101], [219, 103], [209, 97]
+, [215, 99], [215, 98], [204, 92], [204, 91], [213, 94], [213, 93], [224, 97], [210, 90]
+, [210, 89], [210, 88], [219, 91], [222, 91], [219, 89], [209, 84], [229, 91], [229, 90]
+, [231, 90], [231, 89], [220, 84], [231, 87], [217, 81], [225, 83], [227, 83], [238, 86]
+, [224, 80], [226, 80], [223, 78], [220, 76], [243, 83], [222, 75], [242, 81], [221, 73]
+, [245, 80], [223, 72], [247, 79], [228, 72], [227, 71], [250, 77], [242, 74], [236, 71]
+, [245, 73], [238, 70], [230, 67], [254, 73], [239, 68], [243, 68], [242, 67], [248, 68]
+, [233, 63], [243, 65], [254, 67], [249, 65], [244, 63], [255, 65], [254, 64], [254, 63]
+, [240, 59], [249, 60], [255, 61], [247, 58], [250, 58], [244, 56], [248, 56], [251, 56]
+, [250, 55], [253, 55], [247, 53], [251, 53], [254, 53], [252, 52], [252, 51], [249, 50]
+, [254, 50], [251, 49], [251, 48], [254, 48], [252, 47], [255, 47], [254, 46], [254, 45]
+, [255, 45], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44]
+, [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44]
+, [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44]
+, [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44]
+, [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44], [255, 44]
+, ];
 
         function white2MixTempSilderChangeHandler(sliderObj) {
             var tempVal = parseInt(document.getElementById('white2MixtempRange').value);
-            document.getElementById('white2MixtempText').innerHTML = 'Temperature ' + tempVal;
-            convertedXY = util_T_to_xy(tempVal)
-            x = convertedXY[0]
-            y = convertedXY[1]
-                //console.log("conv", tempVal, x, y)
-                //try to mix it with proximation
-            var minDiff = 9999;
-            var minDiffIndex = 0;
-            for (var i = 0, l = allPossibleMixture.length; i < l; i++) {
-                var xdiff = allPossibleMixture[i][0] - x
-                var ydiff = allPossibleMixture[i][1] - y
-                var dist = Math.sqrt(xdiff * xdiff + ydiff * ydiff)
-                if (dist < minDiff) {
-                    minDiff = dist;
-                    minDiffIndex = i;
-                }
-            }
-            //console.log(allPossibleMixture[minDiffIndex])
-            PWMn = allPossibleMixture[minDiffIndex][2]
-            PWMw = allPossibleMixture[minDiffIndex][3]
+            var startTemp = 3300
+            var endTemp = 4700
+            var calcTemp = startTemp + (endTemp - startTemp) * tempVal / 255.0
+            calcTemp = Math.round(calcTemp)
+            document.getElementById('white2MixtempText').innerHTML = 'Temperature ' + calcTemp;
+            entry = tempLookup[tempVal];
+            PWMn = entry[0]
+            PWMw = entry[1]
             document.getElementById('whiteNeutralRange').value = PWMn;
             document.getElementById('whiteWarmRange').value = PWMw;
             if (document.getElementById('autoWrite').checked) {
@@ -236,7 +193,7 @@
     </div>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="3200" max="6000" value="4000" class="slider" id="white2MixtempRange" oninput="white2MixTempSilderChangeHandler(this)" onchange="white2MixTempSilderChangeHandler(this)">
+        <input type="range" min="0" max="255" value="0" class="slider" id="white2MixtempRange" oninput="white2MixTempSilderChangeHandler(this)" onchange="white2MixTempSilderChangeHandler(this)">
         <div style='display: inline-block;' id="white2MixtempText">Temperature 4000</div>
     </div>
     <br>
