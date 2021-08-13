@@ -88,13 +88,32 @@
             var strVal = parseInt(document.getElementById('strengthRange').value);
             var neutralVal = parseInt(document.getElementById('whiteNeutralRange').value);
             var warmVal = parseInt(document.getElementById('whiteWarmRange').value);
-            var bytes = [briVal, modeVal, dirVal, strVal, neutralVal, warmVal];
+            if (document.getElementById('modeText').innerHTML == "FLASH") {
+                var flashParameter1Val = parseInt(document.getElementById('flashParameter1Range').value);
+                var flashParameter2Val = parseInt(document.getElementById('flashParameter2Range').value);
+                var bytes = [briVal, modeVal, dirVal, strVal, neutralVal, warmVal, flashParameter1Val, flashParameter2Val, 0];
+            }
+            else if (document.getElementById('modeText').innerHTML == "PULSE") {
+                var pulseParameter1Val = parseInt(document.getElementById('pulseParameter1Range').value);
+                var pulseParameter2Val = parseInt(document.getElementById('pulseParameter2Range').value);
+                var bytes = [briVal, modeVal, dirVal, strVal, neutralVal, warmVal, pulseParameter1Val, pulseParameter2Val, 0];
+            }
+            else if (document.getElementById('modeText').innerHTML == "ORBIT") {
+                var orbitParameter1Val = parseInt(document.getElementById('orbitParameter1Range').value);
+                var bytes = [briVal, modeVal, dirVal, strVal, neutralVal, warmVal, orbitParameter1Val, 0, 0];
+            }
+            else {
+                var bytes = [briVal, modeVal, dirVal, strVal, neutralVal, warmVal];
+            }
             return bytes;
         }
 
         function modeSilderChangeHandler(val) {
-            modeString = ["Just ON", "FLASH", "ORBIT"]
-            document.getElementById('modeText').innerHTML = modeString[val]
+            modeString = ["Just ON", "FLASH", "PULSE", "ORBIT"];
+            document.getElementById('modeText').innerHTML = modeString[val];
+            document.getElementById('flashParameterContainer').hidden = (document.getElementById('modeText').innerHTML != "FLASH");
+            document.getElementById('pulseParameterContainer').hidden = (document.getElementById('modeText').innerHTML != "PULSE");
+            document.getElementById('orbitParameterContainer').hidden = (document.getElementById('modeText').innerHTML != "ORBIT");
         }
 
         function silderChangeHandler(sliderObj) {
@@ -170,7 +189,7 @@
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="2" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
+        <input type="range" min="0" max="3" value="0" class="slider" id="modeRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Mode
         <p id="modeText">Just ON</p>
     </div>
     <br>
@@ -197,6 +216,16 @@
         <div style='display: inline-block;' id="white2MixtempText">Temperature 4000</div>
     </div>
     <br>
+    <br>
+    <br>
+    <div hidden class="slidecontainer" id="flashParameterContainer">
+        <input type="range" min="1" max="255" value="10" class="slider" id="flashParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Flash On time
+        <input type="range" min="1" max="255" value="10" class="slider" id="flashParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Flash Off time </div>
+    <div hidden class="slidecontainer" id="pulseParameterContainer">
+        <input type="range" min="1" max="255" value="10" class="slider" id="pulseParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Pulse In time
+        <input type="range" min="1" max="255" value="10" class="slider" id="pulseParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Pulse Out time </div>
+    <div hidden class="slidecontainer" id="orbitParameterContainer">
+        <input type="range" min="0" max="255" value="128" class="slider" id="orbitParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Orbit Speed </div>
     <br>
     <br>
     <button onclick="writeButtonHandler()" type="button" id='writeButton'>Write value</button>
