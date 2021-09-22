@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Haptic actuators test BLE</title>
+</head>
+<!-- Load in the d3 library -->
+<!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
+<script src="d3.v5.min.js"></script>
+<script src="bleserial.js"></script>
+<!-- copy here -->
+<script>
+    //new code
+    var actuatorsDictionary = {};
+
+    function initGrpah(actuatorName) {
+        // set the dimensions and margins of the graph
+        var margin = {
+                top: 10
+                , right: 30
+                , bottom: 30
+                , left: 60
+            }
+            , width = 600 - margin.left - margin.right
+            , height = 200 - margin.top - margin.bottom;
+        var svg = d3.select("#" + actuatorName + "_graph").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        // Add X axis --> it is a date format
+        var x = d3.scaleLinear().domain([0, 1000]).range([0, width]);
+        var xAxis = svg.append("g").attr("transform", "translate(0," + height + ")").call(d3.axisBottom(x));
+        // Add Y axis
+        var y = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+        var yAxis = svg.append("g").call(d3.axisLeft(y));
+        // Add the line
+        var initDataset = [
+            {
+                x: 0
+                , y: 0
+                    }
+                    , {
+                x: 100
+                , y: 0
+                    }];
+        var line = svg.append("path");
+        newGraphElement = {
+            svg: svg
+            , x: x
+            , xAxis: xAxis
+            , y: y
+            , yAxis: yAxis
+            , line: line
+            , dataset: initDataset
+        }
+        actuatorsDictionary[actuatorName + "Graph"] = newGraphElement;
+        //updateGrpah(ch_id)
+    }
+    //protocol:
+    //keep strength: K?F?D?
+    //ramp strength: R?F?D?
+    function vibratorAddControl(frequencyInputID, strengthInputID, durationInputID, command, codeInputID) {
+        freqVal = document.getElementById(frequencyInputID).value;
+        strText = document.getElementById(strengthInputID).value;
+        strVal = parseInt(strText)
+        if (isNaN(strVal)) return;
+        durText = document.getElementById(durationInputID).value;
+        durVal = parseInt(durText)
+        if (isNaN(durVal)) return;
+        //console.log(freqVal, strVal, durVal)
+        cmdStr = command + strVal.toString() + "F" + freqVal.toString() + "D" + durVal.toString();
+        codeElement = document.getElementById(codeInputID);
+        codeElement.value = codeElement.value + cmdStr + " ";
+        parseActuatorCode(codeInputID, "vibrator");
+    }
+
+    function parseActuatorCode(codeInputID, actuatorName) {
+        dataset = [];
+        allCode = document.getElementById(codeInputID).value.trim();
+        if (allCode.length == 0) {
+            //default off
+            dataset = [{
+                x: 0
+                , y: 0
+                    }, {
+                x: 100
+                , y: 0
+                    }];
+        }
+        else {
+            processedTime = 0;
+            accuTime = 0;
+            codes = allCode.split(" ");
+            prevStrength = 0;
+            for (var i = 0; i < (codes.length); i++) {
+                oneCode = codes[i];
+                //console.log(oneCode);
+                if (oneCode.length == 0) return;
+                if (oneCode[0] == "K" || oneCode[0] == "R") {
+                    if (actuatorName == "vibrator") {
+                        locationOfF = oneCode.indexOf("F");
+                        locationOfD = oneCode.indexOf("D");
+                        val_str = oneCode.substring(1, locationOfF);
+                        dur_str = oneCode.substring(locationOfD + 1);
+                        strVal = parseInt(val_str);
+                        durVal = parseInt(dur_str);
+                    }
+                    else {
+                        return;
+                    }
+                    if (isNaN(strVal) || isNaN(durVal) || (durVal < 1)) return;
+                    if (oneCode[0] == "K") {
+                        dataset.push({
+                            x: accuTime + 0.1
+                            , y: strVal
+                        });
+                        accuTime += durVal;
+                        dataset.push({
+                            x: accuTime
+                            , y: strVal
+                        });
+                    }
+                    else if (oneCode[0] == "R") {
+                        if (dataset.length == 0) {
+                            dataset.push({
+                                x: 0
+                                , y: 0
+                            });
+                        }
+                        accuTime += durVal;
+                        dataset.push({
+                            x: accuTime
+                            , y: strVal
+                        });
+                        prevStrength = strVal;
+                    }
+                }
+                else {
+                    return;
+                }
+                //console.log(oneCode, oneCode[0]);
+            }
+        }
+        actuatorsDictionary[actuatorName + "Dataset"] = dataset;
+        updateGrpah(actuatorName);
+    }
+
+    function startActuator() {
+        console.log("startActuator");
+        var repeat_count = parseInt(document.getElementById("repeat_count").value);
+        //stopActuator();
+        var maxLoopTime = 0;
+        var actuatorsDictionaryKeys = Object.keys(actuatorsDictionary)
+        for (var i = 0; i < actuatorsDictionaryKeys.length; i++) {
+            var keyStr = actuatorsDictionaryKeys[i];
+            if (keyStr.endsWith("Dataset")) {
+                var dataSet = actuatorsDictionary[keyStr];
+                if (dataSet.length > 0) {
+                    var time_total = dataSet[dataSet.length - 1].x * repeat_count;
+                    if (time_total > maxLoopTime) maxLoopTime = time_total;
+                }
+            }
+        }
+        //send actuator control commands
+        var actuatorsSendString = "N "; //stop all actuators
+        if (document.getElementById("loopSet").checked) {
+            actuatorsSendString = actuatorsSendString + "L ";
+        }
+        //send vibrator
+        var vibratorCodeContent = document.getElementById("vibrator_code").value.trim();
+        if (vibratorCodeContent.length > 0) {
+            //actuatorsSendString = actuatorsSendString + "V ";
+            for (var j = 0; j < repeat_count; j++) {
+                actuatorsSendString = actuatorsSendString + vibratorCodeContent + " ";
+            }
+        }
+        //end command
+        actuatorsSendString = actuatorsSendString + "\n";
+        console.log(actuatorsSendString);
+        nusSendString(actuatorsSendString);
+    }
+
+    function stopActuator() {
+        console.log("stopActuator");
+        nusSendString('N \n');
+    }
+
+    function testActuator() {
+        console.log("Test F0");
+        nusSendString('C \n');
+    }
+
+    function showVal(slider, textID) {
+        var value_txt_div = document.getElementById(textID);
+        value_txt_div.innerHTML = slider.value;
+    }
+
+    function updateGrpah(actuatorName) {
+        var channelGraph = actuatorsDictionary[actuatorName + "Graph"];
+        var dataset = actuatorsDictionary[actuatorName + "Dataset"];
+        channelGraph.x.domain([0, d3.max(dataset, function (d) {
+            return d.x
+        })])
+        channelGraph.xAxis.call(d3.axisBottom(channelGraph.x))
+        channelGraph.line.datum(dataset).attr("fill", "none").attr("stroke", "steelblue").attr("stroke-width", 1.5).attr("d", d3.line().x(function (d) {
+            return channelGraph.x(d.x)
+        }).y(function (d) {
+            return channelGraph.y(d.y)
+        }))
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        initGrpah("vibrator");
+    });
+
+    function presetChange(presetElement) {
+        document.getElementById("vibrator_code").value = presetElement.value;
+        parseActuatorCode('vibrator_code', 'vibrator');
+    }
+</script>
+
+<body>
+    <label>Repeat: </label>
+    <input id="repeat_count" type="number" min="1" max="99" value="1" />
+    <label>Loop: </label>
+    <input type="checkbox" id="loopSet">
+    <br> Presets:
+    <select id="deeelitePresets" onchange="presetChange(this)">
+        <option value="">None</option>
+        <option value="K0F31D1000 K50F31D1000 ">Basic</option>
+        <option value="K15F31D200 K0F31D100 K40F31D200 K0F31D550 ">doppel</option>
+        <option value="R7F31D628 R40F31D1142 R24F31D552 R30F31D1028 R7F31D571 K7F31D590 R0F31D742 R26F31D666 R46F31D838 R30F31D1161 R8F31D685 R0F31D1161 ">Irregular</option>
+        <option value="R11F31D414 R20F31D414 R54F31D628 R22F31D585 R39F31D485 R30F31D371 R17F31D557 R4F31D300 R20F31D428 R24F31D442 R16F31D842 R1F31D1342 ">Echo</option>
+        <option value="R20F31D1000 K20F31D1000 R0F31D1000 K0F31D1000 R40F31D1000 K40F31D1000 R0F31D1000 K0F31D415 ">heartbeat 1</option>
+        <option value="K30F58D200 K0F58D100 K65F58D200 K0F58D500 ">heartbeat 2</option>
+        <option value="R0F58D121 K0F58D71 R8F58D17 R5F58D32 R65F58D49 K65F58D51 R3F58D67 R8F58D67 R18F58D37 R19F58D32 R0F58D70 K0F58D374 ">heartbeat 3</option>
+        <option value="K0F50D3 R73F50D90 R72F50D89 R0F50D31 K0F50D113 R90F50D82 R91F50D117 R0F50D74 K0F50D389 ">heartbeat 4</option>
+        <option value="R57F48D167 R20F48D109 K20F48D143 R89F48D113 R0F48D94 K0F48D369 ">heartbeat 5</option>
+        <option value="R44F48D46 R55F48D23 R64F48D21 R70F48D30 R69F48D37 R58F48D34 R48F48D5 R38F48D3 R25F48D10 R18F48D5 R14F48D36 R13F48D36 R17F48D25 R22F48D38 R41F48D9 R51F48D10 R59F48D10 R68F48D12 R76F48D25 R81F48D28 R82F48D32 R81F48D34 R73F48D34 R63F48D19 R52F48D19 R37F48D14 R19F48D14 R14F48D16 R9F48D27 R7F48D32 R0F48D308 ">heartbeat 6</option>
+    </select>
+    <br>
+    <br> Vibrator
+    <table>
+        <tr>
+            <td>
+                <div id="vibrator_graph"></div>
+                <label>Code</label>
+                <input type="text" id="vibrator_code" size="54" oninput="parseActuatorCode('vibrator_code','vibrator')" /> </td>
+            <td>
+                <label>Frequency: </label>
+                <br>
+                <input id="vibrator_freq_input" type="range" min="10" max="250" step="1" value="31" oninput="showVal(this,'vibrator_freq_val')" /> <span id="vibrator_freq_val">31</span>
+                <br>
+                <label>Add segments</label>
+                <br>
+                <label>Ramp On</label>
+                <br>
+                <label>Strength: </label>
+                <input type="number" min="0" max="100" id="vibrator_rampon_strength_input" value="100">
+                <label>Duration: </label>
+                <input type="number" min="1" max="99999" id="vibrator_rampon_duration_input" value="1000">
+                <button onclick="vibratorAddControl('vibrator_freq_input','vibrator_rampon_strength_input','vibrator_rampon_duration_input','R','vibrator_code')">ADD</button>
+                <br>
+                <label>Ramp Off</label>
+                <br>
+                <label>Strength: </label>
+                <input type="number" min="0" max="100" id="vibrator_rampoff_strength_input" value="0" disabled>
+                <label>Duration: </label>
+                <input type="number" min="1" max="99999" id="vibrator_rampoff_duration_input" value="1000">
+                <button onclick="vibratorAddControl('vibrator_freq_input','vibrator_rampoff_strength_input','vibrator_rampoff_duration_input','R','vibrator_code')">ADD</button>
+                <br>
+                <label>Keep On</label>
+                <br>
+                <label>Strength: </label>
+                <input type="number" min="0" max="100" id="vibrator_keepon_strength_input" value="100">
+                <label>Duration: </label>
+                <input type="number" min="1" max="99999" id="vibrator_keepon_duration_input" value="1000">
+                <button onclick="vibratorAddControl('vibrator_freq_input','vibrator_keepon_strength_input','vibrator_keepon_duration_input','K','vibrator_code')">ADD</button>
+                <br>
+                <label>Keep Off</label>
+                <br>
+                <label>Strength: </label>
+                <input type="number" min="0" max="100" id="vibrator_keepoff_strength_input" value="0" disabled>
+                <label>Duration: </label>
+                <input type="number" min="1" max="99999" id="vibrator_keepoff_duration_input" value="1000">
+                <button onclick="vibratorAddControl('vibrator_freq_input','vibrator_keepoff_strength_input','vibrator_keepoff_duration_input','K','vibrator_code')">ADD</button>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <p class="margin_left_30">*Strength ranges from 0-100. Duration is in millisecond.</p>
+    <br>
+    <br>
+    <br>
+    <button onclick="connectionToggle()" id="clientConnectButton">Connect Motherboard</button>
+    <br>
+    <br>
+    <button onclick="startActuator()">Run</button>
+    <button onclick="stopActuator()">Stop</button>
+    <br>
+    <br>
+    <br>
+    <br>
+    <button onclick="testActuator()">Test F0</button>
+</body>
+
+</html>
