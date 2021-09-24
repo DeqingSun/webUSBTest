@@ -36,6 +36,9 @@
             async writeLedService(data) {
                 await this.ledCharacteristic.writeValue(data);
             }
+            async readLedService(data) {
+                return await this.ledCharacteristic.readValue();
+            }
             disconnect() {
                 if (!this.device) {
                     return Promise.reject('Device is not connected.');
@@ -176,6 +179,57 @@
                 writeButtonHandler();
             }
         }
+        var aaa;
+        async function readButtonHandler(event) {
+            //brightness, mode, direction, strength, r, g, b
+            try {
+                var data = await lumaTrayBLEDevice.readLedService();
+                var dataLength = data.byteLength;
+                if (dataLength >= 6) {
+                    var briVal = data.getUint8(0);
+                    document.getElementById('brightnessRange').value = briVal;
+                    var modeVal = data.getUint8(1);
+                    document.getElementById('modeRange').value = modeVal;
+                    var dirVal = data.getUint8(2);
+                    document.getElementById('directionRange').value = dirVal;
+                    var strVal = data.getUint8(3);
+                    document.getElementById('strengthRange').value = strVal;
+                    var neutralVal = data.getUint8(4);
+                    document.getElementById('whiteNeutralRange').value = neutralVal;
+                    var warmVal = data.getUint8(5);
+                    document.getElementById('whiteWarmRange').value = warmVal;
+                    //differentMode additional code
+                    if (modeVal == 1) {
+                        if (dataLength >= (6 + 2)) {
+                            modeSilderChangeHandler(modeVal);
+                            var flashParameter1Val = data.getUint8(6);
+                            document.getElementById('flashParameter1Range').value = flashParameter1Val;
+                            var flashParameter2Val = data.getUint8(7);
+                            document.getElementById('flashParameter2Range').value = flashParameter2Val;
+                        }
+                    }
+                    else if (modeVal == 2) {
+                        if (dataLength >= (6 + 2)) {
+                            modeSilderChangeHandler(modeVal);
+                            var pulseParameter1Val = data.getUint8(6);
+                            document.getElementById('pulseParameter1Range').value = pulseParameter1Val;
+                            var pulseParameter2Val = data.getUint8(7);
+                            document.getElementById('pulseParameter2Range').value = pulseParameter2Val;
+                        }
+                    }
+                    else if (modeVal == 3) {
+                        if (dataLength >= (6 + 1)) {
+                            modeSilderChangeHandler(modeVal);
+                            var orbitParameter1Val = data.getUint8(6);
+                            document.getElementById('orbitParameter1Range').value = orbitParameter1Val;
+                        }
+                    }
+                }
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
     </script>
 </head>
 
@@ -232,5 +286,9 @@
     <br>
     <br>
     <input type="checkbox" id="autoWrite" checked>Auto Write </body>
+<br>
+<br>
+<button onclick="readButtonHandler()" type="button" id='readButton'>Read back value</button>
+<br>
 
 </html>
