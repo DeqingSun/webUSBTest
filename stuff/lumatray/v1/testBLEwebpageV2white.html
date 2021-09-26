@@ -67,6 +67,9 @@
             var bytes = getDataFromSilder();
             var buffer = new Uint8Array(bytes).buffer;
             var data = new DataView(buffer);
+            if (lumaTrayBLEDevice.device == null) {
+                return;
+            }
             lumaTrayBLEDevice.ledQueue.push(data);
             if (!lumaTrayBLEDevice.ledSending) {
                 lumaTrayBLEDevice.ledSending = true;
@@ -126,6 +129,7 @@
             if (document.getElementById('autoWrite').checked) {
                 writeButtonHandler();
             }
+            setValueText();
         }
         /*color temperature test*/
         tempLookup = [
@@ -224,12 +228,49 @@
                             document.getElementById('orbitParameter1Range').value = orbitParameter1Val;
                         }
                     }
+                    setValueText();
                 }
             }
             catch (e) {
                 console.error(e);
             }
         }
+
+        function setValueText() {
+            //brightness
+            var briVal = parseInt(document.getElementById('brightnessRange').value);
+            var briPercentage = (briVal * 100 / 255.0).toFixed(1);
+            document.getElementById('brightnessText').innerHTML = briVal + ", " + briPercentage + "%";
+            //direction
+            var dirVal = parseInt(document.getElementById('directionRange').value);
+            var dirAngle = (dirVal * 360 / 255.0).toFixed();
+            document.getElementById('directionText').innerHTML = dirVal + ", " + dirAngle + " deg";
+            //strength
+            var strVal = parseInt(document.getElementById('strengthRange').value);
+            var strPercentage = (strVal * 100 / 255.0).toFixed(1);
+            document.getElementById('strengthText').innerHTML = strVal + ", " + strPercentage + "%";
+            //flash
+            var flashParameter1Val = parseInt(document.getElementById('flashParameter1Range').value);
+            var flashParameter2Val = parseInt(document.getElementById('flashParameter2Range').value);
+            var flashOnTime = flashParameter1Val * 10;
+            var flashOffTime = flashParameter2Val * 10;
+            document.getElementById('flashOnTimeText').innerHTML = flashParameter1Val + ", " + flashOnTime + "ms";
+            document.getElementById('flashOffTimeText').innerHTML = flashParameter2Val + ", " + flashOffTime + "ms";
+            //pulse
+            var pulseParameter1Val = parseInt(document.getElementById('pulseParameter1Range').value);
+            var pulseParameter2Val = parseInt(document.getElementById('pulseParameter2Range').value);
+            var pulseInTime = pulseParameter1Val * 100;
+            var pulseOutTime = pulseParameter2Val * 100;
+            document.getElementById('pulseInTimeText').innerHTML = pulseParameter1Val + ", " + pulseInTime + "ms";
+            document.getElementById('pulseOutTimeText').innerHTML = pulseParameter2Val + ", " + pulseOutTime + "ms";
+            //orbit
+            var orbitParameter1Val = parseInt(document.getElementById('orbitParameter1Range').value);
+            var orbitRPM = (60000 * (orbitParameter1Val - 128) / (128 * 256)).toFixed(2);
+            document.getElementById('orbitSpeedText').innerHTML = orbitParameter1Val + ", " + orbitRPM + "rpm";
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            setValueText();
+        });
     </script>
 </head>
 
@@ -239,7 +280,9 @@
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Brightness </div>
+        <input type="range" min="0" max="255" value="0" class="slider" id="brightnessRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Brightness
+        <label id="brightnessText">brightnessText</label>
+    </div>
     <br>
     <br>
     <div class="slidecontainer">
@@ -249,11 +292,15 @@
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Direction </div>
+        <input type="range" min="0" max="255" value="0" class="slider" id="directionRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Direction
+        <label id="directionText">directionText</label>
+    </div>
     <br>
     <br>
     <div class="slidecontainer">
-        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Strength </div>
+        <input type="range" min="0" max="255" value="255" class="slider" id="strengthRange" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Strength
+        <label id="strengthText">strengthText</label>
+    </div>
     <br>
     <br>
     <div class="slidecontainer">
@@ -274,12 +321,20 @@
     <br>
     <div hidden class="slidecontainer" id="flashParameterContainer">
         <input type="range" min="1" max="255" value="10" class="slider" id="flashParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Flash On time
-        <input type="range" min="1" max="255" value="10" class="slider" id="flashParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Flash Off time </div>
+        <label id="flashOnTimeText">flashOnTimeText</label>
+        <input type="range" min="1" max="255" value="10" class="slider" id="flashParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Flash Off time
+        <label id="flashOffTimeText">flashOffTimeText</label>
+    </div>
     <div hidden class="slidecontainer" id="pulseParameterContainer">
         <input type="range" min="1" max="255" value="10" class="slider" id="pulseParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Pulse In time
-        <input type="range" min="1" max="255" value="10" class="slider" id="pulseParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Pulse Out time </div>
+        <label id="pulseInTimeText">pulseInTimeText</label>
+        <input type="range" min="1" max="255" value="10" class="slider" id="pulseParameter2Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Pulse Out time
+        <label id="pulseOutTimeText">pulseOutTimeText</label>
+    </div>
     <div hidden class="slidecontainer" id="orbitParameterContainer">
-        <input type="range" min="0" max="255" value="128" class="slider" id="orbitParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Orbit Speed </div>
+        <input type="range" min="0" max="255" value="128" class="slider" id="orbitParameter1Range" oninput="silderChangeHandler(this)" onchange="silderChangeHandler(this)"> Orbit Speed
+        <label id="orbitSpeedText">orbitSpeedText</label>
+    </div>
     <br>
     <br>
     <button onclick="writeButtonHandler()" type="button" id='writeButton'>Write value</button>
