@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>firmware rename tool</title>
+    <script src="CH573DeeeLiteV1_20211028_hex.js"></script>
+    <script src="intel-hex.browser.js"></script>
+    <script src="FileSaver.js"></script>
+</head>
+
+<body>
+    <label id="debugInfo"></label>
+    <br>
+    <input type="text" id="bleName" value="empty">
+    <button id="button_gen" onclick="genHex()">Generate Hex</button>
+</body>
+<script>
+    //https://unpkg.com/nrf-intel-hex@1.3.0/intel-hex.browser.js
+    blocks = MemoryMap.fromHex(hexContent);
+    let addresses = Array.from(blocks.keys());
+    document.getElementById("debugInfo").innerHTML = "Load hex OK";
+
+    function genHex() {
+        var nameStr = document.getElementById("bleName").value;
+        nameStr = nameStr.substring(0, 10);
+        for (let i = 0, l = addresses.length; i < l; i++) {
+            let address = addresses[i];
+            let block = blocks.get(address);
+            console.log(" Block starting at " + address + " (0x" + address.toString(16) + "), " + block.length + " (0x" + block.length.toString(16) + ") bytes long");
+            let strOfBlock = new TextDecoder('ascii').decode(block);
+            var foundPosition = strOfBlock.indexOf("CustomName");
+            if (foundPosition >= 0) {
+                document.getElementById("debugInfo").innerHTML = "Found String on addr: " + (address + foundPosition).toString(16);
+                console.log(foundPosition);
+                var j;
+                for (j = 0; j < nameStr.length; j++) {
+                    block[foundPosition + j] = nameStr.charCodeAt(j)
+                }
+                block[foundPosition + j] = 0; //end of string
+            }
+        }
+        let hexString = blocks.asHexString();
+        var blob = new Blob([hexString], {
+            type: "text/plain;charset=utf-8"
+        });
+        saveAs(blob, "output_" + nameStr + ".hex");
+    }
+</script>
+
+</html>
