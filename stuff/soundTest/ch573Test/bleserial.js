@@ -9,6 +9,7 @@ var nusService;
 var rxCharacteristic;
 var txCharacteristic;
 var connected = false;
+var tryToReconnect = true;
 
 function connectionToggle() {
     if (connected) {
@@ -47,6 +48,7 @@ function connect() {
         bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
         return device.gatt.connect();
     }).then(server => {
+        tryToReconnect = true;
         console.log('Locate NUS service');
         return server.getPrimaryService(bleNusServiceUUID);
     }).then(service => {
@@ -89,6 +91,7 @@ function disconnect() {
     }
     console.log('Disconnecting from Bluetooth Device...');
     if (bleDevice.gatt.connected) {
+        tryToReconnect = false;
         bleDevice.gatt.disconnect();
         connected = false;
         setConnButtonState(false);
@@ -103,6 +106,48 @@ function onDisconnected() {
     connected = false;
     console.log('\r\n' + bleDevice.name + ' Disconnected.');
     setConnButtonState(false);
+    if (tryToReconnect) {
+        console.log("Try reconnect");
+        reconnect();
+    }
+}
+
+function reconnect() {
+    bleDevice.gatt.connect().then(server => {
+        tryToReconnect = true;
+        console.log('Locate NUS service');
+        return server.getPrimaryService(bleNusServiceUUID);
+    }).then(service => {
+        nusService = service;
+        console.log('Found NUS service: ' + service.uuid);
+    }).then(() => {
+        console.log('Locate RX characteristic');
+        return nusService.getCharacteristic(bleNusCharRXUUID);
+    }).then(characteristic => {
+        rxCharacteristic = characteristic;
+        console.log('Found RX characteristic');
+    }).then(() => {
+        console.log('Locate TX characteristic');
+        return nusService.getCharacteristic(bleNusCharTXUUID);
+    }).then(characteristic => {
+        txCharacteristic = characteristic;
+        console.log('Found TX characteristic');
+    }).then(() => {
+        console.log('Enable notifications');
+        return txCharacteristic.startNotifications();
+    }).then(() => {
+        console.log('Notifications started');
+        txCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+        connected = true;
+        console.log('\r\n' + bleDevice.name + ' Connected.');
+        //nusSendString('\r');
+        setConnButtonState(true);
+    }).catch(error => {
+        console.log('' + error);
+        if (bleDevice && bleDevice.gatt.connected) {
+            bleDevice.gatt.disconnect();
+        }
+    });
 }
 
 function handleNotifications(event) {
