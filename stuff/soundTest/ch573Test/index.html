@@ -188,6 +188,12 @@
         nusSendString('C \n');
     }
 
+    function readBattery() {
+        getBatteryLevel().then(value => {
+            document.getElementById("batteryLevelId").innerHTML = value;
+        });
+    }
+
     function showVal(slider, textID) {
         var value_txt_div = document.getElementById(textID);
         value_txt_div.innerHTML = slider.value;
@@ -299,6 +305,10 @@
     <br>
     <br>
     <button onclick="testActuator()">Test F0</button>
+    <br>
+    <br>
+    <button onclick="readBattery()">Read Battery</button>
+    <label id="batteryLevelId">level</label>
 </body>
 
 </html>

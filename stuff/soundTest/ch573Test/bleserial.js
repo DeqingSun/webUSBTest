@@ -8,6 +8,7 @@ var bleServer;
 var nusService;
 var rxCharacteristic;
 var txCharacteristic;
+var batteryCharacteristic;
 var connected = false;
 var tryToReconnect = true;
 
@@ -39,7 +40,7 @@ function connect() {
         filters: [{
             namePrefix: "DeeeLite"
         }]
-        , optionalServices: [bleNusServiceUUID]
+        , optionalServices: [bleNusServiceUUID,'battery_service']
         , acceptAllDevices: false
     }).then(device => {
         bleDevice = device;
@@ -49,6 +50,7 @@ function connect() {
         return device.gatt.connect();
     }).then(server => {
         tryToReconnect = true;
+        bleServer = server;
         console.log('Locate NUS service');
         return server.getPrimaryService(bleNusServiceUUID);
     }).then(service => {
@@ -66,6 +68,15 @@ function connect() {
     }).then(characteristic => {
         txCharacteristic = characteristic;
         console.log('Found TX characteristic');
+    }).then(server => {
+        console.log('Getting Battery Service.');
+        return bleServer.getPrimaryService('battery_service');
+    }).then(service => {
+        console.log('Getting Battery Level Characteristic.');
+        return service.getCharacteristic('battery_level');
+    }).then(characteristic => {
+        batteryCharacteristic = characteristic;
+        console.log('Found Battery Level characteristic');
     }).then(() => {
         console.log('Enable notifications');
         return txCharacteristic.startNotifications();
@@ -115,6 +126,7 @@ function onDisconnected() {
 function reconnect() {
     bleDevice.gatt.connect().then(server => {
         tryToReconnect = true;
+        bleServer = server;
         console.log('Locate NUS service');
         return server.getPrimaryService(bleNusServiceUUID);
     }).then(service => {
@@ -132,6 +144,15 @@ function reconnect() {
     }).then(characteristic => {
         txCharacteristic = characteristic;
         console.log('Found TX characteristic');
+    }).then(server => {
+        console.log('Getting Battery Service.');
+        return bleServer.getPrimaryService('battery_service');
+    }).then(service => {
+        console.log('Getting Battery Level Characteristic.');
+        return service.getCharacteristic('battery_level');
+    }).then(characteristic => {
+        batteryCharacteristic = characteristic;
+        console.log('Found Battery Level characteristic');
     }).then(() => {
         console.log('Enable notifications');
         return txCharacteristic.startNotifications();
@@ -184,4 +205,12 @@ function sendNextChunk(a) {
             sendNextChunk(a.slice(MTU));
         }
     });
+}
+
+function getBatteryLevel() {
+    return batteryCharacteristic.readValue().then(
+        value => {
+            return value.getUint8(0);
+        }
+    );
 }
