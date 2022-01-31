@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>test Detection Camera Example</title>
+    <script src="utils.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div>
+        <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
+    </div>
+    <div> valid block need to have change larger than
+        <input type="range" min="1" max="10" value="2" step="0.1" class="slider" id="sliderMultiply" oninput="this.nextElementSibling.value = this.value">
+        <output>2</output> times of the
+        <input type="range" min="1" max="64" value="16" class="slider" id="sliderNtop" oninput="this.nextElementSibling.value = this.value">
+        <output>16</output> th largest block </div>
+    <canvas id="canvasOutput" width="640" height="480"></canvas>
+    <div id="debugIndo">debug info</div>
+    <script type="text/javascript">
+        let utils = new Utils('errorMessage');
+        let video = document.getElementById('videoInput');
+        let vc = null;
+
+        function startVideoProcessing() {
+            let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            let currentFrame = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+            let prevFrame = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+            let diffFrame = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+            let diffGray = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+            let integralSum = new cv.Mat();
+            let displayMat = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+            let sectionPoints = [];
+            let sectionDiff = [];
+            //div image to 8*8
+            var videoXstep = video.width / 8;
+            var videoYstep = video.height / 8;
+            for (var j = 0; j < 8; j++) {
+                for (var i = 0; i < 8; i++) {
+                    var index = j * 8 + i;
+                    var startX = i * videoXstep;
+                    var endX = (i + 1) * videoXstep - 1;
+                    var startY = j * videoYstep;
+                    var endY = (j + 1) * videoYstep - 1;
+                    sectionPoints.push([new cv.Point(startX, startY), new cv.Point(endX, endY)]);
+                    sectionDiff.push(0);
+                }
+            }
+            let redColor = new cv.Scalar(255, 0, 0, 255);
+            let greenColor = new cv.Scalar(0, 255, 0, 255);
+            let cap = new cv.VideoCapture(video);
+            const FPS = 30;
+
+            function getSumOfArea(integralResult, x1, y1, x2, y2) {
+                var valBottomRight = integralResult.intAt(y2 + 1, x2 + 1);
+                var valTopLeft = integralResult.intAt(y1 + 1, x1 + 1);
+                var valTopRight = integralResult.intAt(y1, x2 + 1);
+                var valBottomLeft = integralResult.intAt(y2 + 1, x1);
+                return valBottomRight + valTopLeft - valTopRight - valBottomLeft;
+            }
+
+            function median(numbers) {
+                const sorted = numbers.slice().sort((a, b) => a - b);
+                const middle = Math.floor(sorted.length / 2);
+                if (sorted.length % 2 === 0) {
+                    return (sorted[middle - 1] + sorted[middle]) / 2;
+                }
+                return sorted[middle];
+            }
+
+            function getTopN(values, n) {
+                const sorted = values.slice().sort((a, b) => a - b);
+                return sorted[sorted.length - 1 - n];
+            }
+
+            function processVideo() {
+                try {
+                    let begin = Date.now();
+                    // start processing.
+                    cap.read(src);
+                    cv.cvtColor(src, currentFrame, cv.COLOR_RGBA2RGB);
+                    cv.absdiff(currentFrame, prevFrame, diffFrame)
+                    currentFrame.copyTo(prevFrame);
+                    cv.cvtColor(diffFrame, diffGray, cv.COLOR_RGB2GRAY);
+                    cv.integral(diffGray, integralSum, cv.CV_32S);
+                    if (integralSum.intAt(video.height, video.width) > 0) { //skip if identical img
+                        //
+                        cv.cvtColor(diffGray, displayMat, cv.COLOR_GRAY2RGB);
+                        for (var i = 0; i < 64; i++) {
+                            sectionCorners = sectionPoints[i];
+                            sectionDiff[i] = getSumOfArea(integralSum, sectionCorners[0].x, sectionCorners[0].y, sectionCorners[1].x, sectionCorners[1].y);
+                        }
+                        var topNValue = document.getElementById("sliderNtop").value;
+                        var topNMultiply = document.getElementById("sliderMultiply").value;
+                        var topN = getTopN(sectionDiff, topNValue);
+                        //console.log(sectionDiff,medianDiff)
+                        for (var i = 0; i < 64; i++) {
+                            sectionCorners = sectionPoints[i];
+                            if (sectionDiff[i] > (topN * topNMultiply)) {
+                                cv.rectangle(displayMat, sectionCorners[0], sectionCorners[1], greenColor, 1);
+                            }
+                            else {
+                                cv.rectangle(displayMat, sectionCorners[0], sectionCorners[1], redColor, 1);
+                            }
+                        }
+                        //currentFrame.copyTo(dst);
+                        cv.imshow('canvasOutput', displayMat);
+                        //show debug info
+                        {
+                            const sorted = sectionDiff.slice().sort((a, b) => a - b);
+                            document.getElementById("debugIndo").innerHTML = "min:" + sorted[0] + " max:" + sorted.at(-1) + " median:" + sorted[sorted.length / 2] + " big" + topNValue + "th:" + topN;
+                        }
+                        // schedule the next one.
+                    }
+                    let delay = 1000 / FPS - (Date.now() - begin);
+                    setTimeout(processVideo, delay);
+                }
+                catch (err) {
+                    console.log(err);
+                }
+            };
+            // schedule the first one.
+            setTimeout(processVideo, 0);
+        }
+        utils.loadOpenCv(() => {
+            //console.log(cv.getBuildInformation());
+            utils.startCamera('qvga', onVideoStarted, 'videoInput');
+        });
+
+        function onVideoStarted() {
+            height = video.videoHeight;
+            width = video.videoWidth;
+            video.setAttribute('width', width);
+            video.setAttribute('height', height);
+            vc = new cv.VideoCapture(video);
+            startVideoProcessing();
+        }
+    </script>
+</body>
+
+</html>
