@@ -8,21 +8,20 @@
 </head>
 
 <body>
-    <div id="parameterPanel" style="display:none">
-        <div> valid block need to have change larger than
-            <input type="range" min="1" max="10" value="2" step="0.1" class="slider" id="sliderMultiply" oninput="this.nextElementSibling.value = this.value">
-            <output>2</output> times of the
-            <input type="range" min="1" max="64" value="16" class="slider" id="sliderNtop" oninput="this.nextElementSibling.value = this.value">
-            <output>16</output> th largest block </div>
-        <input type="range" min="100" max="5000" value="1500" class="slider" id="sliderTrigCool" oninput="this.nextElementSibling.value = this.value">
-        <output>1500</output> ms retrigger cooldown
-        <div id="debugIndo">debug info</div>
-        <div>
-            <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
-        </div>
+    <div>
+        <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
     </div>
-    <div> <img src="" id="imgDisp1"> <img src="" id="imgDisp2"> <img src="" id="imgDisp3"></div>
+    <div> valid block need to have change larger than
+        <input type="range" min="1" max="10" value="2" step="0.1" class="slider" id="sliderMultiply" oninput="this.nextElementSibling.value = this.value">
+        <output>2</output> times of the
+        <input type="range" min="1" max="64" value="16" class="slider" id="sliderNtop" oninput="this.nextElementSibling.value = this.value">
+        <output>16</output> th largest block </div>
     <canvas id="canvasOutput" width="640" height="480"></canvas>
+    <div id="debugIndo">debug info</div>
+    <div>
+        <input type="range" min="100" max="5000" value="1500" class="slider" id="sliderTrigCool" oninput="this.nextElementSibling.value = this.value">
+        <output>1500</output> ms retrigger cooldown </div>
+    <div> <img src="" id="imgDisp1"> <img src="" id="imgDisp2"> <img src="" id="imgDisp3"></div>
     <script type="text/javascript">
         let utils = new Utils('errorMessage');
         let video = document.getElementById('videoInput');
@@ -32,7 +31,6 @@
         var triggerLimit = 4;
         var triggerValue = [false, false, false];
         var previousTriggerTimes = [new Date(), new Date(), new Date()];
-        var triggerLessDisplay = true;
 
         function startVideoProcessing() {
             let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
@@ -45,7 +43,6 @@
             let sectionPoints = [];
             let sectionDiff = [];
             let sectionMove = [];
-            let displayMatCrop = new cv.Mat();
             //div image to 8*8
             var videoXstep = video.width / 8;
             var videoYstep = video.height / 8;
@@ -164,15 +161,7 @@
                             }
                         }
                         //currentFrame.copyTo(dst);
-                        if (triggerLessDisplay) {
-                            var displayHeight = displayMat.rows / 8 * 3;
-                            let rect = new cv.Rect(0, displayMat.rows - displayHeight, displayMat.cols, displayHeight);
-                            displayMatCrop = displayMat.roi(rect);
-                            cv.imshow('canvasOutput', displayMatCrop);
-                        }
-                        else {
-                            cv.imshow('canvasOutput', displayMat);
-                        }
+                        cv.imshow('canvasOutput', displayMat);
                         //show debug info
                         {
                             const sorted = sectionDiff.slice().sort((a, b) => a - b);
@@ -194,17 +183,6 @@
             //console.log(cv.getBuildInformation());
             utils.startCamera('qvga', onVideoStarted, 'videoInput');
             prepareImgs();
-            document.addEventListener("keydown", e => {
-                if (e.key == 'd' || e.key == 'D') {
-                    var debugDiv = document.getElementById("parameterPanel");
-                    if (debugDiv.style.display == "none") {
-                        debugDiv.style.display = "";
-                    }
-                    else {
-                        debugDiv.style.display = "none";
-                    }
-                }
-            })
         });
 
         function onVideoStarted() {
