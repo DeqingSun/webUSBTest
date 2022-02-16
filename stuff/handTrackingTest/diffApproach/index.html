@@ -27,7 +27,7 @@
         let utils = new Utils('errorMessage');
         let video = document.getElementById('videoInput');
         let vc = null;
-        var roiIndex = [48 + 1, 48 + 3, 48 + 5];
+        var roiIndex = [48 + 3];
         var triggerCount = [0, 0, 0]
         var triggerLimit = 4;
         var triggerValue = [false, false, false];
@@ -101,7 +101,8 @@
                     cv.integral(diffGray, integralSum, cv.CV_32S);
                     if (integralSum.intAt(video.height, video.width) > 0) { //skip if identical img
                         //
-                        cv.cvtColor(diffGray, displayMat, cv.COLOR_GRAY2RGB);
+                        //cv.cvtColor(diffGray, displayMat, cv.COLOR_GRAY2RGB);
+                        currentFrame.copyTo(displayMat);
                         for (var i = 0; i < 64; i++) {
                             sectionCorners = sectionPoints[i];
                             sectionDiff[i] = getSumOfArea(integralSum, sectionCorners[0].x, sectionCorners[0].y, sectionCorners[1].x, sectionCorners[1].y);
@@ -127,7 +128,7 @@
                         }
                         //do tracking
                         {
-                            for (var i = 0; i < 3; i++) {
+                            for (var i = 0; i < roiIndex.length; i++) {
                                 var index = roiIndex[i];
                                 if (sectionMove[index]) {
                                     triggerCount[i]++;
