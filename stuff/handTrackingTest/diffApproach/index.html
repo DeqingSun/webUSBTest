@@ -21,13 +21,13 @@
             <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
         </div>
     </div>
-    <div> <img src="" id="imgDisp1"> <img src="" id="imgDisp2"> <img src="" id="imgDisp3"></div>
+    <div style="width: 640px;height:420px;border:none"> <img src="" id="imgDisp" style="width: 100%;height: 100%;object-fit: contain;"></div>
     <canvas id="canvasOutput" width="640" height="480"></canvas>
     <script type="text/javascript">
         let utils = new Utils('errorMessage');
         let video = document.getElementById('videoInput');
         let vc = null;
-        var roiIndex = [48 + 3];
+        var roiIndex = [48 + 2, 48 + 5];
         var triggerCount = [0, 0, 0]
         var triggerLimit = 4;
         var triggerValue = [false, false, false];
@@ -94,9 +94,9 @@
                     // start processing.
                     cap.read(src);
                     cv.cvtColor(src, currentFrame, cv.COLOR_RGBA2RGB);
+                    cv.flip(currentFrame, currentFrame, 1);
                     cv.absdiff(currentFrame, prevFrame, diffFrame)
                     currentFrame.copyTo(prevFrame);
-                    cv.flip(diffFrame, diffFrame, 1);
                     cv.cvtColor(diffFrame, diffGray, cv.COLOR_RGB2GRAY);
                     cv.integral(diffGray, integralSum, cv.CV_32S);
                     if (integralSum.intAt(video.height, video.width) > 0) { //skip if identical img
@@ -217,54 +217,41 @@
             startVideoProcessing();
         }
         //image switch code
-        var cImagesPath = []
-        var nImagePath = []
-        var picImagesPath = []
-        var nImageIndex = 0;
-        var cImagesImageIndex = 0;
-        var picImagesPathImageIndex = 0;
+        var rImagesPath = []
+        var pImagesPath = []
+        var allImgPath = [rImagesPath, pImagesPath];
+        var artistIndex = 0;
+        var artistImageIndex = 0;
 
         function prepareImgs() {
-            for (var i = 0; i < 3; i++) {
-                nImagePath[i] = "https://www.elasticmind.com/glassmouse/REZones/assets/n/" + i + ".png";
+            for (var i = 0; i < 10; i++) {
+                rImagesPath[i] = "r/" + i + ".jpg";
             }
-            for (var j = 0; j < 3; j++) {
-                cImagesPath[j] = []
-                for (var k = 0; k < 3; k++) {
-                    var fn = "https://www.elasticmind.com/glassmouse/REZones/assets/n/" + j + "/" + k + ".png"
-                    cImagesPath[j][k] = (fn)
-                }
-            }
-            for (var m = 0; m < 3; m++) {
-                picImagesPath[m] = []
-                for (var n = 0; n < 3; n++) {
-                    picImagesPath[m][n] = []
-                    for (var l = 0; l < 3; l++) {
-                        var fname = "https://www.elasticmind.com/glassmouse/REZones/assets/n/" + m + "/" + n + "/" + l + ".png"
-                        picImagesPath[m][n][l] = (fname)
-                    }
-                }
+            for (var i = 0; i < 10; i++) {
+                pImagesPath[i] = "p/" + i + ".jpg";
             }
             updateImgs();
         }
 
         function incImageIndex(i) {
             if (i == 0) {
-                nImageIndex = (nImageIndex + 1) % 3;
+                artistIndex++;
+                if (artistIndex >= allImgPath.length) {
+                    artistIndex = 0;
+                }
+                artistImageIndex = 0;
             }
             if (i == 1) {
-                cImagesImageIndex = (cImagesImageIndex + 1) % 3;
-            }
-            if (i == 2) {
-                picImagesPathImageIndex = (picImagesPathImageIndex + 1) % 3;
+                artistImageIndex++;
+                if (artistImageIndex >= allImgPath[artistIndex].length) {
+                    artistImageIndex = 0;
+                }
             }
             updateImgs();
         }
 
         function updateImgs() {
-            document.getElementById("imgDisp1").src = nImagePath[nImageIndex];
-            document.getElementById("imgDisp2").src = cImagesPath[nImageIndex][cImagesImageIndex];
-            document.getElementById("imgDisp3").src = picImagesPath[nImageIndex][cImagesImageIndex][picImagesPathImageIndex];
+            document.getElementById("imgDisp").src = allImgPath[artistIndex][artistImageIndex];
         }
     </script>
 </body>
