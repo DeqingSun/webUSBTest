@@ -14,20 +14,22 @@
             <output>2</output> times of the
             <input type="range" min="1" max="64" value="16" class="slider" id="sliderNtop" oninput="this.nextElementSibling.value = this.value">
             <output>16</output> th largest block </div>
-        <input type="range" min="100" max="5000" value="1500" class="slider" id="sliderTrigCool" oninput="this.nextElementSibling.value = this.value">
-        <output>1500</output> ms retrigger cooldown
+        <input type="range" min="100" max="5000" value="400" class="slider" id="sliderTrigCool" oninput="this.nextElementSibling.value = this.value">
+        <output>400</output> ms retrigger cooldown
         <div id="debugIndo">debug info</div>
         <div>
             <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
         </div>
     </div>
     <div style="width: 640px;height:420px;border:none"> <img src="" id="imgDisp" style="width: 100%;height: 100%;object-fit: contain;"></div>
-    <canvas id="canvasOutput" width="640" height="480"></canvas>
+    <div style="width: 640px;border:none;">
+        <canvas id="canvasOutput" width="640" height="480" style="padding: 0;margin:auto;display: block;"></canvas>
+    </div>
     <script type="text/javascript">
         let utils = new Utils('errorMessage');
         let video = document.getElementById('videoInput');
         let vc = null;
-        var roiIndex = [48 + 2, 48 + 5];
+        var roiIndex = [48 + 2, 48 + 5]; //For Steve: this shows which block need to be tracked. The blocks are numbered horizontally.
         var triggerCount = [0, 0, 0]
         var triggerLimit = 4;
         var triggerValue = [false, false, false];
@@ -233,7 +235,7 @@
             updateImgs();
         }
 
-        function incImageIndex(i) {
+        function incImageIndex(i) { //For Steve: this is how the code reacts to the swipe events
             if (i == 0) {
                 artistIndex++;
                 if (artistIndex >= allImgPath.length) {
