@@ -29,8 +29,10 @@
         let utils = new Utils('errorMessage');
         let video = document.getElementById('videoInput');
         let vc = null;
-        var roiIndex = [48 + 2, 48 + 5]; //For Steve: this shows which block need to be tracked. The blocks are numbered horizontally.
-        var triggerCount = [0, 0, 0]
+        var roiIndex = [48 + 1, 48 + 5]; //For Steve: this shows which block need to be tracked. The blocks are numbered horizontally.
+        var roiDoubleBoxes = [true, true];
+        var roiDoubleBoxValueScale = 1.5;
+        var triggerCount = [0, 0, 0];
         var triggerLimit = 4;
         var triggerValue = [false, false, false];
         var previousTriggerTimes = [new Date(), new Date(), new Date()];
@@ -106,27 +108,39 @@
                         //
                         //cv.cvtColor(diffGray, displayMat, cv.COLOR_GRAY2RGB);
                         currentFrame.copyTo(displayMat);
-                        for (var i = 0; i < 64; i++) {
-                            sectionCorners = sectionPoints[i];
+                        for (let i = 0; i < 64; i++) {
+                            let sectionCorners = sectionPoints[i];
                             sectionDiff[i] = getSumOfArea(integralSum, sectionCorners[0].x, sectionCorners[0].y, sectionCorners[1].x, sectionCorners[1].y);
                         }
                         var topNValue = document.getElementById("sliderNtop").value;
                         var topNMultiply = document.getElementById("sliderMultiply").value;
                         var topN = getTopN(sectionDiff, topNValue);
                         //console.log(sectionDiff,medianDiff)
-                        for (var i = 0; i < 64; i++) {
-                            sectionCorners = sectionPoints[i];
-                            sectionMove[i] = (sectionDiff[i] > (topN * topNMultiply));
+                        for (let i = 0; i < 64; i++) {
+                            let sectionCorners = sectionPoints[i];
+                            let sectionStartCorner = sectionCorners[0];
+                            let sectionEndCorner = sectionCorners[1];
+                            let sectionScale = 1;
+                            let thisSectionDiff = sectionDiff[i];
+                            if (roiIndex.includes(i)){
+                                let indexInRoiIndex = roiIndex.indexOf(i);
+                                if (roiDoubleBoxes[indexInRoiIndex]){
+                                    sectionEndCorner = sectionPoints[i+1][1];
+                                    sectionScale = roiDoubleBoxValueScale;
+                                    thisSectionDiff += sectionDiff[i+1];
+                                }
+                            } 
+                            sectionMove[i] = ( thisSectionDiff > (topN * topNMultiply * sectionScale));
                             if (showingDebug || roiIndex.includes(i)) {
                                 if (sectionMove[i]) {
-                                    cv.rectangle(displayMat, sectionCorners[0], sectionCorners[1], greenColor, 1);
+                                    cv.rectangle(displayMat, sectionStartCorner, sectionEndCorner, greenColor, 1);
                                 }
                                 else {
                                     if (roiIndex.includes(i)) {
-                                        cv.rectangle(displayMat, sectionCorners[0], sectionCorners[1], yellowColor, 2);
+                                        cv.rectangle(displayMat, sectionStartCorner, sectionEndCorner, yellowColor, 2);
                                     }
                                     else {
-                                        cv.rectangle(displayMat, sectionCorners[0], sectionCorners[1], redColor, 1);
+                                        cv.rectangle(displayMat, sectionStartCorner, sectionEndCorner, redColor, 1);
                                     }
                                 }
                             }
