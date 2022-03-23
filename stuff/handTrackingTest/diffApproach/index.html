@@ -5,9 +5,19 @@
     <meta charset="utf-8">
     <title>test Detection Camera Example</title>
     <script src="utils.js" type="text/javascript"></script>
+    <script>
+        //replace PHP here
+
+let ar = [[{"src":"p/0.jpg"},{"src":"p/1.jpg"},{"src":"p/10.jpg"},{"src":"p/2.jpg"},{"src":"p/3.jpg"},{"src":"p/4.jpg"},{"src":"p/5.jpg"},{"src":"p/6.jpg"},{"src":"p/7.jpg"},{"src":"p/8.jpg"},{"src":"p/9.jpg"},],[{"src":"r/0.jpg"},{"src":"r/1.jpg"},{"src":"r/10.jpg"},{"src":"r/2.jpg"},{"src":"r/3.jpg"},{"src":"r/4.jpg"},{"src":"r/5.jpg"},{"src":"r/6.jpg"},{"src":"r/7.jpg"},{"src":"r/8.jpg"},{"src":"r/9.jpg"},],];
+        
+    </script>
 </head>
 
 <body>
+    <div style="width: 95vw;height: 85vh;max-height: 85vh;border:none"> <img src="" id="imgDisp" style="width: 100%;height: 100%;object-fit: contain;"></div>
+    <div style="width: 100%;border:none;">
+        <canvas id="canvasOutput" width="640" height="480" style="padding: 0;margin:auto;display: block;"></canvas>
+    </div>
     <div id="parameterPanel" style="display:none">
         <div> valid block need to have change larger than
             <input type="range" min="1" max="10" value="2" step="0.1" class="slider" id="sliderMultiply" oninput="this.nextElementSibling.value = this.value">
@@ -18,12 +28,100 @@
         <output>400</output> ms retrigger cooldown
         <div id="debugIndo">debug info</div>
         <div>
-            <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
+            <table>
+                <! –– 1*2 table ––>
+                <tr>
+                    <th>
+                        <video id="videoInput" class="hidden">Your browser does not support the video tag.</video>
+                    </th>
+                    <th>
+                        <! –– 8*8 table for data ––>
+                        <table border='1' style='border-collapse:collapse;'>
+                            <tr>
+                                <th id="debugTable0" style="width:65px;">cell 0</th>
+                                <th id="debugTable1" style="width:65px;">cell 1</th>
+                                <th id="debugTable2" style="width:65px;">cell 2</th>
+                                <th id="debugTable3" style="width:65px;">cell 3</th>
+                                <th id="debugTable4" style="width:65px;">cell 4</th>
+                                <th id="debugTable5" style="width:65px;">cell 5</th>
+                                <th id="debugTable6" style="width:65px;">cell 6</th>
+                                <th id="debugTable7" style="width:65px;">cell 7</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable8">cell 8</th>
+                                <th id="debugTable9">cell 9</th>
+                                <th id="debugTable10">cell 10</th>
+                                <th id="debugTable11">cell 11</th>
+                                <th id="debugTable12">cell 12</th>
+                                <th id="debugTable13">cell 13</th>
+                                <th id="debugTable14">cell 14</th>
+                                <th id="debugTable15">cell 15</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable16">cell 16</th>
+                                <th id="debugTable17">cell 17</th>
+                                <th id="debugTable18">cell 18</th>
+                                <th id="debugTable19">cell 19</th>
+                                <th id="debugTable20">cell 20</th>
+                                <th id="debugTable21">cell 21</th>
+                                <th id="debugTable22">cell 22</th>
+                                <th id="debugTable23">cell 23</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable24">cell 24</th>
+                                <th id="debugTable25">cell 25</th>
+                                <th id="debugTable26">cell 26</th>
+                                <th id="debugTable27">cell 27</th>
+                                <th id="debugTable28">cell 28</th>
+                                <th id="debugTable29">cell 29</th>
+                                <th id="debugTable30">cell 30</th>
+                                <th id="debugTable31">cell 31</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable32">cell 32</th>
+                                <th id="debugTable33">cell 33</th>
+                                <th id="debugTable34">cell 34</th>
+                                <th id="debugTable35">cell 35</th>
+                                <th id="debugTable36">cell 36</th>
+                                <th id="debugTable37">cell 37</th>
+                                <th id="debugTable38">cell 38</th>
+                                <th id="debugTable39">cell 39</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable40">cell 40</th>
+                                <th id="debugTable41">cell 41</th>
+                                <th id="debugTable42">cell 42</th>
+                                <th id="debugTable43">cell 43</th>
+                                <th id="debugTable44">cell 44</th>
+                                <th id="debugTable45">cell 45</th>
+                                <th id="debugTable46">cell 46</th>
+                                <th id="debugTable47">cell 47</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable48">cell 48</th>
+                                <th id="debugTable49">cell 49</th>
+                                <th id="debugTable50">cell 50</th>
+                                <th id="debugTable51">cell 51</th>
+                                <th id="debugTable52">cell 52</th>
+                                <th id="debugTable53">cell 53</th>
+                                <th id="debugTable54">cell 54</th>
+                                <th id="debugTable55">cell 55</th>
+                            </tr>
+                            <tr>
+                                <th id="debugTable56">cell 56</th>
+                                <th id="debugTable57">cell 57</th>
+                                <th id="debugTable58">cell 58</th>
+                                <th id="debugTable59">cell 59</th>
+                                <th id="debugTable60">cell 60</th>
+                                <th id="debugTable61">cell 61</th>
+                                <th id="debugTable62">cell 62</th>
+                                <th id="debugTable63">cell 63</th>
+                            </tr>
+                        </table>
+                    </th>
+                </tr>
+            </table>
         </div>
-    </div>
-    <div style="width: 95vw;height: 85vh;max-height: 85vh;border:none"> <img src="" id="imgDisp" style="width: 100%;height: 100%;object-fit: contain;"></div>
-    <div style="width: 100%;border:none;">
-        <canvas id="canvasOutput" width="640" height="480" style="padding: 0;margin:auto;display: block;"></canvas>
     </div>
     <script type="text/javascript">
         let utils = new Utils('errorMessage');
@@ -112,6 +210,12 @@
                             let sectionCorners = sectionPoints[i];
                             sectionDiff[i] = getSumOfArea(integralSum, sectionCorners[0].x, sectionCorners[0].y, sectionCorners[1].x, sectionCorners[1].y);
                         }
+                        //output diff to debug
+                        if (document.getElementById("parameterPanel").style.display != "none") {
+                            for (let i = 0; i < 64; i++) {
+                                document.getElementById("debugTable" + i).innerHTML = sectionDiff[i];
+                            }
+                        }
                         var topNValue = document.getElementById("sliderNtop").value;
                         var topNMultiply = document.getElementById("sliderMultiply").value;
                         var topN = getTopN(sectionDiff, topNValue);
@@ -122,15 +226,15 @@
                             let sectionEndCorner = sectionCorners[1];
                             let sectionScale = 1;
                             let thisSectionDiff = sectionDiff[i];
-                            if (roiIndex.includes(i)){
+                            if (roiIndex.includes(i)) {
                                 let indexInRoiIndex = roiIndex.indexOf(i);
-                                if (roiDoubleBoxes[indexInRoiIndex]){
-                                    sectionEndCorner = sectionPoints[i+1][1];
+                                if (roiDoubleBoxes[indexInRoiIndex]) {
+                                    sectionEndCorner = sectionPoints[i + 1][1];
                                     sectionScale = roiDoubleBoxValueScale;
-                                    thisSectionDiff += sectionDiff[i+1];
+                                    thisSectionDiff += sectionDiff[i + 1];
                                 }
-                            } 
-                            sectionMove[i] = ( thisSectionDiff > (topN * topNMultiply * sectionScale));
+                            }
+                            sectionMove[i] = (thisSectionDiff > (topN * topNMultiply * sectionScale));
                             if (showingDebug || roiIndex.includes(i)) {
                                 if (sectionMove[i]) {
                                     cv.rectangle(displayMat, sectionStartCorner, sectionEndCorner, greenColor, 1);
@@ -196,7 +300,7 @@
                         //show debug info
                         {
                             const sorted = sectionDiff.slice().sort((a, b) => a - b);
-                            document.getElementById("debugIndo").innerHTML = "min:" + sorted[0] + " max:" + sorted.at(-1) + " median:" + sorted[sorted.length / 2] + " big" + topNValue + "th:" + topN;
+                            document.getElementById("debugIndo").innerHTML = "min:" + sorted[0] + " max:" + sorted[sorted.length - 1] + " median:" + sorted[sorted.length / 2] + " big" + topNValue + "th:" + topN;
                         }
                         // schedule the next one.
                     }
@@ -238,33 +342,24 @@
             startVideoProcessing();
         }
         //image switch code
-        var rImagesPath = []
-        var pImagesPath = []
-        var allImgPath = [rImagesPath, pImagesPath];
         var artistIndex = 0;
         var artistImageIndex = 0;
 
         function prepareImgs() {
-            for (var i = 0; i < 10; i++) {
-                rImagesPath[i] = "r/" + i + ".jpg";
-            }
-            for (var i = 0; i < 10; i++) {
-                pImagesPath[i] = "p/" + i + ".jpg";
-            }
             updateImgs();
         }
 
         function incImageIndex(i) { //For Steve: this is how the code reacts to the swipe events
             if (i == 0) {
                 artistIndex++;
-                if (artistIndex >= allImgPath.length) {
+                if (artistIndex >= ar.length) {
                     artistIndex = 0;
                 }
                 artistImageIndex = 0;
             }
             if (i == 1) {
                 artistImageIndex++;
-                if (artistImageIndex >= allImgPath[artistIndex].length) {
+                if (artistImageIndex >= ar[artistIndex].length) {
                     artistImageIndex = 0;
                 }
             }
@@ -272,7 +367,7 @@
         }
 
         function updateImgs() {
-            document.getElementById("imgDisp").src = allImgPath[artistIndex][artistImageIndex];
+            document.getElementById("imgDisp").src = ar[artistIndex][artistImageIndex].src;
         }
     </script>
 </body>
